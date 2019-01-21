@@ -311,4 +311,88 @@ describe('ES2015StyleParser', () => {
         })
     })
   })
+
+  describe('式のパーズ', () => {
+    test('(x, y, z) => x(z, y(z))', () => {
+      expect(Parser.expr.tryParse('(x, y, z) => x(z, y(z))'))
+        .toEqual({
+          type: 'Lambda',
+          param: 'x',
+          body: {
+            type: 'Lambda',
+            param: 'y',
+            body: {
+              type: 'Lambda',
+              param: 'z',
+              body: {
+                type: 'Apply',
+                left: {
+                  type: 'Apply',
+                  left: {
+                    type: 'Variable',
+                    label: 'x',
+                  },
+                  right: {
+                    type: 'Variable',
+                    label: 'z',
+                  },
+                },
+                right: {
+                  type: 'Apply',
+                  left: {
+                    type: 'Variable',
+                    label: 'y',
+                  },
+                  right: {
+                    type: 'Variable',
+                    label: 'z',
+                  },
+                },
+              },
+            },
+          },
+        })
+    })
+
+    test('x, y, z => x (z) (y (z))', () => {
+      expect(Parser.expr.tryParse('x, y, z => x (z) (y (z))'))
+        .toEqual({
+          type: 'Lambda',
+          param: 'x',
+          body: {
+            type: 'Lambda',
+            param: 'y',
+            body: {
+              type: 'Lambda',
+              param: 'z',
+              body: {
+                type: 'Apply',
+                left: {
+                  type: 'Apply',
+                  left: {
+                    type: 'Variable',
+                    label: 'x',
+                  },
+                  right: {
+                    type: 'Variable',
+                    label: 'z',
+                  },
+                },
+                right: {
+                  type: 'Apply',
+                  left: {
+                    type: 'Variable',
+                    label: 'y',
+                  },
+                  right: {
+                    type: 'Variable',
+                    label: 'z',
+                  },
+                },
+              },
+            },
+          },
+        })
+    })
+  })
 })

@@ -1,6 +1,6 @@
 import * as P from 'parsimmon'
 
-import { Variable, Symbl, Identifier, Expr, Lambda } from '../Types'
+import { Variable, Symbl, Identifier, Expr, Lambda, Func } from '../Types'
 
 
 function token (parser: P.Parser<any>): P.Parser<any> {
@@ -29,7 +29,7 @@ export const Parser = P.createLanguage({
     applys(r): P.Parser<Expr> {
         return P.seqMap(
             r.callable,
-            token(r.args).wrap(P.string('('), P.string(')')).many(),
+            token(token(r.args).wrap(P.string('('), P.string(')'))).many(),
             (e1: Expr, argss: Expr[][]) => (
                 argss.reduce(
                     (e2: Expr, args: Expr[]) => (
@@ -89,7 +89,7 @@ export const Parser = P.createLanguage({
     },
 
     // 仮引数
-    params(r) {
+    params(r): P.Parser<Identifier[]> {
         return P.sepBy1(
             /* content   = */ r.identifier,
             /* separator = */ token(P.string(','))
@@ -121,24 +121,55 @@ export const Parser = P.createLanguage({
         return token(P.regex(/[a-zA-Z0-9_]+/))
     },
 
-
-    namedFunc(r) {
-        return seqMap(
-            P.string('function'),
-            P.whitespace,
-            r.identifier,
-            token(parens(r.params)),
-            
-
-    },
-
     // 関数定義(定義済み関数の上書きを許さない)
-    addFunc(r) {
+    addFunc(r): P.Parser<[Identifier, Func]> {
         return P.seqMap(
-            token(r.identifier),
+            token(r.lvalue),
             token(P.string(':=')),
             token(r.expr),
-            ([funcName, params], _, bareExpr) => ( [funcName, new Func(params, bareExpr)] )
+            ([funcName, params], _, bareExpr): [Identifier, Func] => {
+                return [
+                    funcName,
+                    {
+                        type: 'Function' as 'Function',
+                        params,
+                        bareExpr,
+                    },
+                ]
+            }
+        )
+    },
+
+    // 関数定義(定義済み関数の上書きを許す)
+    updateFunc(r): P.Parser<[Identifier, Func]> {
+        return P.seqMap(
+            token(r.lvalue),
+            token(P.string('=')),
+            token(r.expr),
+            ([funcName, params], _, bareExpr): [Identifier, Func] => {
+                return [
+                    funcName,
+                    {
+                        type: 'Function' as 'Function',
+                        params,
+                        bareExpr,
+                    },
+                ]
+            }
+        )
+    },
+
+    // 関数定義の左辺値
+    lvalue(r) : P.Parser<[Identifier,Identifier[]]> {
+        return P.seqMap(
+            token(r.identifier),
+            P.alt(
+                parens(r.params),
+                P.succeed([])
+            ),
+            (funcName, params): [Identifier, Identifier[]] => {
+                return [funcName, params]
+            }
         )
     },
 })

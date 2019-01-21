@@ -19,7 +19,7 @@ exports.Parser = P.createLanguage({
     },
     // 関数適用
     applys(r) {
-        return P.seqMap(r.callable, token(r.args).wrap(P.string('('), P.string(')')).many(), (e1, argss) => (argss.reduce((e2, args) => (args.reduce((left, right) => ({
+        return P.seqMap(r.callable, token(token(r.args).wrap(P.string('('), P.string(')'))).many(), (e1, argss) => (argss.reduce((e2, args) => (args.reduce((left, right) => ({
             type: 'Apply',
             left,
             right
@@ -73,6 +73,38 @@ exports.Parser = P.createLanguage({
     // 識別子
     identifier() {
         return token(P.regex(/[a-zA-Z0-9_]+/));
+    },
+    // 関数定義(定義済み関数の上書きを許さない)
+    addFunc(r) {
+        return P.seqMap(token(r.lvalue), token(P.string(':=')), token(r.expr), ([funcName, params], _, bareExpr) => {
+            return [
+                funcName,
+                {
+                    type: 'Function',
+                    params,
+                    bareExpr,
+                },
+            ];
+        });
+    },
+    // 関数定義(定義済み関数の上書きを許す)
+    updateFunc(r) {
+        return P.seqMap(token(r.lvalue), token(P.string('=')), token(r.expr), ([funcName, params], _, bareExpr) => {
+            return [
+                funcName,
+                {
+                    type: 'Function',
+                    params,
+                    bareExpr,
+                },
+            ];
+        });
+    },
+    // 関数定義の左辺値
+    lvalue(r) {
+        return P.seqMap(token(r.identifier), P.alt(parens(r.params), P.succeed([])), (funcName, params) => {
+            return [funcName, params];
+        });
     },
 });
 //# sourceMappingURL=ES2015StyleParser.js.map
