@@ -103,7 +103,7 @@ describe('ES2015StyleParser', () => {
 
     test('シンボルは ":" から始まっていなければいけない', () => {
       expect(() => { Parser.symbl.tryParse('x') })
-        .toThrow()
+        .toThrowError()
     })
   })
 
@@ -393,6 +393,71 @@ describe('ES2015StyleParser', () => {
             },
           },
         })
+    })
+  })
+
+  describe('関数定義のパーズ', () => {
+    test('flip(f) = x => y => f(y, x)', () => {
+      expect(Parser.updateFunc.tryParse('flip(f) = x => y => f(y, x)'))
+        .toEqual([
+          'flip',
+          {
+            type: 'Function',
+            params: ['f'],
+            bareExpr: {
+              type: 'Lambda',
+              param: 'x',
+              body: {
+                type: 'Lambda',
+                param: 'y',
+                body: {
+                  type: 'Apply',
+                  left: {
+                    type: 'Apply',
+                    left: {
+                      type: 'Variable',
+                      label: 'f',
+                    },
+                    right: {
+                      type: 'Variable',
+                      label: 'y',
+                    },
+                  },
+                  right: {
+                    type: 'Variable',
+                    label: 'x',
+                  }
+                }
+              }
+            }
+          },
+        ])
+    })
+
+    test('引数を取らない関数(コンビネーター)の場合、左辺値のパーレンを省略しなければいけない', () => {
+      expect(() => { Parser.updateFunc.tryParse('true() = x => y => x') })
+        .toThrowError()
+
+      expect(Parser.updateFunc.tryParse('true = x => y => x'))
+        .toEqual([
+          'true',
+          {
+            type: 'Function',
+            params: [],
+            bareExpr: {
+              type: 'Lambda',
+              param: 'x',
+              body: {
+                type: 'Lambda',
+                param: 'y',
+                body: {
+                  type: 'Variable',
+                  label: 'x',
+                },
+              },
+            },
+          },
+        ])
     })
   })
 })
