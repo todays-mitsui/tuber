@@ -1,6 +1,8 @@
 import * as P from 'parsimmon'
 
-import { Variable, Symbl, Identifier, Expr, Lambda, Func } from '../Types'
+import { Parser } from '../Types/Parser'
+import { Variable, Symbl, Identifier, Expr } from '../Types/Expr'
+import { Command, Action } from '../Types/Command';
 
 
 function token (parser: P.Parser<any>): P.Parser<any> {
@@ -17,7 +19,7 @@ function optParens (parser: P.Parser<any>): P.Parser<any> {
 };
 
 
-export const Parser = P.createLanguage({
+export const ExprParser = P.createLanguage({
     expr(r): P.Parser<Expr> {
         return P.alt(
             r.lambda,
@@ -70,7 +72,7 @@ export const Parser = P.createLanguage({
     },
 
     // 関数抽象
-    lambda(r) {
+    lambda(r): P.Parser<Expr> {
         return P.seqMap(
             token(optParens(r.params)),
             token(P.string('=>')),
@@ -120,51 +122,145 @@ export const Parser = P.createLanguage({
     identifier(): P.Parser<Identifier> {
         return token(P.regex(/[a-zA-Z0-9_]+/))
     },
+})
+
+export const CommandParser = P.createLanguage({
+    command(r): P.Parser<Command> {
+        return P.alt(
+            r.add,
+            r.update,
+            r.eval,
+            r.evalLast,
+            r.evalHead,
+            r.evalTail,
+            r.info,
+            r.context
+        )
+    },
+
+    // β変換列を表示
+    eval(): P.Parser<Command> {
+        return P.seqMap(
+            token(ExprParser.expr),
+            P.eof,
+            (expr: Expr, _) => {
+                return {
+                    action: Action.Eval,
+                    operand: {
+                        expr,
+                    },
+                }
+            }
+        )
+    },
+
+    // β変結果のみ表示
+    evalLast(): P.Parser<Command> {
+        return P.seqMap(
+            token(P.string('!')),
+            token(ExprParser.expr),
+            P.eof,
+            (_1, expr, _3) => {
+                return {
+                    action: Action.EvalLast,
+                    operand: {
+                        expr,
+                    }
+                }
+            }
+        )
+    },
+
+    // β変換列の先頭のみ表示
+    evalHead(): P.Parser<Command> {
+        return P.seqMap(
+            P.optWhitespace,
+            P.string(':'),
+            P.digits,
+            P.whitespace,
+            ExprParser.expr,
+            (_1, _2, numStr, _4, expr) => {
+                return {
+                    action: Action.EvalHead,
+                    operand: {
+                        expr,
+                        length: parseInt(numStr, 10),
+                    },
+                }
+            }
+        )
+    },
+
+    // β変換列の末尾のみ表示
+    evalTail(): P.Parser<Command> {
+        return P.seqMap(
+            P.optWhitespace,
+            P.string(':-'),
+            P.digits,
+            P.whitespace,
+            ExprParser.expr,
+            (_1, _2, numStr, _4, expr) => {
+                return {
+                    action: Action.EvalTail,
+                    operand: {
+                        expr,
+                        length: parseInt(numStr, 10),
+                    },
+                }
+            }
+        )
+    },
 
     // 関数定義(定義済み関数の上書きを許さない)
-    addFunc(r): P.Parser<[Identifier, Func]> {
+    add(r): P.Parser<Command> {
         return P.seqMap(
             token(r.lvalue),
             token(P.string(':=')),
-            token(r.expr),
-            ([funcName, params], _, bareExpr): [Identifier, Func] => {
-                return [
-                    funcName,
-                    {
-                        type: 'Function' as 'Function',
-                        params,
-                        bareExpr,
-                    },
-                ]
+            token(ExprParser.expr),
+            ([funcName, params], _, bareExpr) => {
+                return {
+                    action: Action.Add,
+                    operand: {
+                        identifier: funcName,
+                        expr: {
+                            type: 'Function' as 'Function',
+                            params,
+                            bareExpr
+                        },
+                    }
+                }
             }
         )
     },
 
     // 関数定義(定義済み関数の上書きを許す)
-    updateFunc(r): P.Parser<[Identifier, Func]> {
+    update(r): P.Parser<Command> {
         return P.seqMap(
             token(r.lvalue),
             token(P.string('=')),
-            token(r.expr),
-            ([funcName, params], _, bareExpr): [Identifier, Func] => {
-                return [
-                    funcName,
-                    {
-                        type: 'Function' as 'Function',
-                        params,
-                        bareExpr,
-                    },
-                ]
+            token(ExprParser.expr),
+            ([funcName, params], _, bareExpr) => {
+                return {
+                    action: Action.Update,
+                    operand: {
+                        identifier: funcName,
+                        expr: {
+                            type: 'Function' as 'Function',
+                            params,
+                            bareExpr
+                        },
+                    }
+                }
             }
         )
     },
 
     // 関数定義の左辺値
-    lvalue(r) : P.Parser<[Identifier,Identifier[]]> {
+    lvalue(): P.Parser<[Identifier,Identifier[]]> {
         return P.seqMap(
-            token(r.identifier),
+            token(ExprParser.identifier),
             P.alt(
-                parens(r.params),
+                parens(ExprParser.params),
                 P.succeed([])
             ),
             (funcName, params): [Identifier, Identifier[]] => {
@@ -172,4 +268,128 @@ export const Parser = P.createLanguage({
             }
         )
     },
+
+    // Context から定義済み関数を検索する
+    info(): P.Parser<Command> {
+        return P.seqMap(
+            token(P.string('?')),
+            token(ExprParser.identifier),
+            P.eof,
+            (_1, identifier, _3) => {
+                return {
+                    action: Action.Info,
+                    operand: {
+                        identifier,
+                    }
+                }
+            }
+        )
+    },
+
+    // Context 全体を参照
+    context(): P.Parser<Command> {
+        return P.seqMap(
+            P.string('?'),
+            P.optWhitespace,
+            P.eof,
+            () => {
+                return {
+                    action: Action.Context,
+                }
+            }
+        )
+    },
 })
+
+class ES2015StyleParser implements Parser {
+    public style: string
+
+    constructor(
+        private exprParser: P.Language,
+        private commandParser: P.Language
+    ) {
+        this.style = 'ES2015Style'
+    }
+
+    public parseExpr(src: string): Expr {
+        const expr = this.exprParser.expr.tryParse(src)
+
+        return this.allocate(new Set([]), expr)
+    }
+
+    public parseCommand(src: string): Command {
+        const command = this.commandParser.command.tryParse(src)
+
+        switch (command.action) {
+            case Action.Eval:
+            case Action.EvalLast:
+            case Action.EvalHead:
+            case Action.EvalTail:
+            case Action.Add:
+            case Action.Update:
+            {
+                command.operand.expr = this.allocate(new Set([]), command.operand.expr)
+
+                return command
+            }
+
+            default: {
+                return command
+            }
+        }
+    }
+
+    /**
+     * Variable と Combinator の振り分けがされていない式に対して、正しく振り分けを行う
+     *
+     * @param set  いま着目している場所より外側の Lambda で登場した変数名を蓄積する集合
+     * @param expr Variable と Combinator の振り分けがされる前の式
+     */
+    private allocate(set: Set<Identifier>, expr: Expr): Expr {
+        console.info(expr);
+
+        switch (expr.type) {
+            case 'Variable': {
+                if (set.has(expr.label)) { return expr }
+
+                return {
+                    type: 'Combinator',
+                    label: expr.label,
+                }
+            }
+
+            case 'Combinator': {
+                if (!set.has(expr.label)) { return expr }
+
+                return {
+                    type: 'Variable',
+                    label: expr.label,
+                }
+            }
+
+            case 'Symbol': {
+                return expr
+            }
+
+            case 'Apply': {
+                return {
+                    type: 'Apply',
+                    left: this.allocate(set, expr.left),
+                    right: this.allocate(set, expr.right),
+                }
+            }
+
+            case 'Lambda': {
+                set.add(expr.param);
+
+                return {
+                    type: 'Lambda',
+                    param: expr.param,
+                    body: this.allocate(set, expr.body),
+                }
+            }
+        }
+    }
+}
+
+export default new ES2015StyleParser(ExprParser, CommandParser)

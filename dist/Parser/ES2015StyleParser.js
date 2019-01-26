@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const P = require("parsimmon");
+const Command_1 = require("../Types/Command");
 function token(parser) {
     return P.optWhitespace.then(parser).skip(P.optWhitespace);
 }
@@ -13,7 +14,7 @@ function optParens(parser) {
     return parens(parser).or(parser);
 }
 ;
-exports.Parser = P.createLanguage({
+exports.ExprParser = P.createLanguage({
     expr(r) {
         return P.alt(r.lambda, r.applys);
     },
@@ -74,37 +75,190 @@ exports.Parser = P.createLanguage({
     identifier() {
         return token(P.regex(/[a-zA-Z0-9_]+/));
     },
-    // 関数定義(定義済み関数の上書きを許さない)
-    addFunc(r) {
-        return P.seqMap(token(r.lvalue), token(P.string(':=')), token(r.expr), ([funcName, params], _, bareExpr) => {
-            return [
-                funcName,
-                {
-                    type: 'Function',
-                    params,
-                    bareExpr,
+});
+exports.CommandParser = P.createLanguage({
+    command(r) {
+        return P.alt(r.add, r.update, r.eval, r.evalLast, r.evalHead, r.evalTail, r.info, r.context);
+    },
+    // β変換列を表示
+    eval() {
+        return P.seqMap(token(exports.ExprParser.expr), P.eof, (expr, _) => {
+            return {
+                action: Command_1.Action.Eval,
+                operand: {
+                    expr,
                 },
-            ];
+            };
+        });
+    },
+    // β変結果のみ表示
+    evalLast() {
+        return P.seqMap(token(P.string('!')), token(exports.ExprParser.expr), P.eof, (_1, expr, _3) => {
+            return {
+                action: Command_1.Action.EvalLast,
+                operand: {
+                    expr,
+                }
+            };
+        });
+    },
+    // β変換列の先頭のみ表示
+    evalHead() {
+        return P.seqMap(P.optWhitespace, P.string(':'), P.digits, P.whitespace, exports.ExprParser.expr, (_1, _2, numStr, _4, expr) => {
+            return {
+                action: Command_1.Action.EvalHead,
+                operand: {
+                    expr,
+                    length: parseInt(numStr, 10),
+                },
+            };
+        });
+    },
+    // β変換列の末尾のみ表示
+    evalTail() {
+        return P.seqMap(P.optWhitespace, P.string(':-'), P.digits, P.whitespace, exports.ExprParser.expr, (_1, _2, numStr, _4, expr) => {
+            return {
+                action: Command_1.Action.EvalTail,
+                operand: {
+                    expr,
+                    length: parseInt(numStr, 10),
+                },
+            };
+        });
+    },
+    // 関数定義(定義済み関数の上書きを許さない)
+    add(r) {
+        return P.seqMap(token(r.lvalue), token(P.string(':=')), token(exports.ExprParser.expr), ([funcName, params], _, bareExpr) => {
+            return {
+                action: Command_1.Action.Add,
+                operand: {
+                    identifier: funcName,
+                    expr: {
+                        type: 'Function',
+                        params,
+                        bareExpr
+                    },
+                }
+            };
         });
     },
     // 関数定義(定義済み関数の上書きを許す)
-    updateFunc(r) {
-        return P.seqMap(token(r.lvalue), token(P.string('=')), token(r.expr), ([funcName, params], _, bareExpr) => {
-            return [
-                funcName,
-                {
-                    type: 'Function',
-                    params,
-                    bareExpr,
-                },
-            ];
+    update(r) {
+        return P.seqMap(token(r.lvalue), token(P.string('=')), token(exports.ExprParser.expr), ([funcName, params], _, bareExpr) => {
+            return {
+                action: Command_1.Action.Update,
+                operand: {
+                    identifier: funcName,
+                    expr: {
+                        type: 'Function',
+                        params,
+                        bareExpr
+                    },
+                }
+            };
         });
     },
     // 関数定義の左辺値
-    lvalue(r) {
-        return P.seqMap(token(r.identifier), P.alt(parens(r.params), P.succeed([])), (funcName, params) => {
+    lvalue() {
+        return P.seqMap(token(exports.ExprParser.identifier), P.alt(parens(exports.ExprParser.params), P.succeed([])), (funcName, params) => {
             return [funcName, params];
         });
     },
+    // Context から定義済み関数を検索する
+    info() {
+        return P.seqMap(token(P.string('?')), token(exports.ExprParser.identifier), P.eof, (_1, identifier, _3) => {
+            return {
+                action: Command_1.Action.Info,
+                operand: {
+                    identifier,
+                }
+            };
+        });
+    },
+    // Context 全体を参照
+    context() {
+        return P.seqMap(P.string('?'), P.optWhitespace, P.eof, () => {
+            return {
+                action: Command_1.Action.Context,
+            };
+        });
+    },
 });
+class ES2015StyleParser {
+    constructor(exprParser, commandParser) {
+        this.exprParser = exprParser;
+        this.commandParser = commandParser;
+        this.style = 'ES2015Style';
+    }
+    parseExpr(src) {
+        const expr = this.exprParser.expr.tryParse(src);
+        return this.allocate(new Set([]), expr);
+    }
+    parseCommand(src) {
+        const command = this.commandParser.command.tryParse(src);
+        switch (command.action) {
+            case Command_1.Action.Eval:
+            case Command_1.Action.EvalLast:
+            case Command_1.Action.EvalHead:
+            case Command_1.Action.EvalTail:
+            case Command_1.Action.Add:
+            case Command_1.Action.Update:
+                {
+                    command.operand.expr = this.allocate(new Set([]), command.operand.expr);
+                    return command;
+                }
+            default: {
+                return command;
+            }
+        }
+    }
+    /**
+     * Variable と Combinator の振り分けがされていない式に対して、正しく振り分けを行う
+     *
+     * @param set  いま着目している場所より外側の Lambda で登場した変数名を蓄積する集合
+     * @param expr Variable と Combinator の振り分けがされる前の式
+     */
+    allocate(set, expr) {
+        console.info(expr);
+        switch (expr.type) {
+            case 'Variable': {
+                if (set.has(expr.label)) {
+                    return expr;
+                }
+                return {
+                    type: 'Combinator',
+                    label: expr.label,
+                };
+            }
+            case 'Combinator': {
+                if (!set.has(expr.label)) {
+                    return expr;
+                }
+                return {
+                    type: 'Variable',
+                    label: expr.label,
+                };
+            }
+            case 'Symbol': {
+                return expr;
+            }
+            case 'Apply': {
+                return {
+                    type: 'Apply',
+                    left: this.allocate(set, expr.left),
+                    right: this.allocate(set, expr.right),
+                };
+            }
+            case 'Lambda': {
+                set.add(expr.param);
+                return {
+                    type: 'Lambda',
+                    param: expr.param,
+                    body: this.allocate(set, expr.body),
+                };
+            }
+        }
+    }
+}
+exports.default = new ES2015StyleParser(exports.ExprParser, exports.CommandParser);
 //# sourceMappingURL=ES2015StyleParser.js.map
