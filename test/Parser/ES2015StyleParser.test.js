@@ -459,5 +459,41 @@ describe('ES2015StyleParser', () => {
           },
         ])
     })
+
+    test('s(x,y,z)=x(z)(y(z))', () => {
+      expect(Parser.updateFunc.tryParse('s(x,y,z)=x(z)(y(z))'))
+        .toEqual([
+          's',
+          {
+            type: 'Function',
+            params: ['x', 'y', 'z'],
+            bareExpr: {
+              type: 'Apply',
+              left: {
+                type: 'Apply',
+                left: {
+                  type: 'Variable',
+                  label: 'x',
+                },
+                right: {
+                  type: 'Variable',
+                  label: 'z',
+                },
+              },
+              right: {
+                type: 'Apply',
+                left: {
+                  type: 'Variable',
+                  label: 'y',
+                },
+                right: {
+                  type: 'Variable',
+                  label: 'z',
+                },
+              },
+            }
+          },
+        ])
+    })
   })
 })
