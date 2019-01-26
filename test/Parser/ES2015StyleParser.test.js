@@ -407,8 +407,7 @@ describe('ES2015StyleCommandParser', () => {
           action: 'Update',
           operand: {
             identifier: 'flip',
-            expr: {
-              type: 'Function',
+            func: {
               params: ['f'],
               bareExpr: {
                 type: 'Lambda',
@@ -450,8 +449,7 @@ describe('ES2015StyleCommandParser', () => {
           action: 'Update',
           operand: {
             identifier: 'true',
-            expr: {
-              type: 'Function',
+            func: {
               params: [],
               bareExpr: {
                 type: 'Lambda',
@@ -476,8 +474,7 @@ describe('ES2015StyleCommandParser', () => {
           action: 'Update',
           operand: {
             identifier: 's',
-            expr: {
-              type: 'Function',
+            func: {
               params: ['x', 'y', 'z'],
               bareExpr: {
                 type: 'Apply',
@@ -512,7 +509,7 @@ describe('ES2015StyleCommandParser', () => {
 })
 
 describe('ES2015StyleParser', () => {
-  describe('式のパーズ', () => {
+  describe('parseExpr', () => {
     test('自由変数と束縛変数の混ざった式', () => {
       expect(parser.parseExpr('x => Y( x(x) )'))
         .toEqual({
@@ -540,15 +537,14 @@ describe('ES2015StyleParser', () => {
     })
   })
 
-  describe('コマンドのパーズ', () => {
+  describe('parseCommand', () => {
     test('自由変数と束縛変数の混ざった関数定義', () => {
       expect(parser.parseCommand('Y(x) := x(Y(x))'))
         .toEqual({
           action: 'Add',
           operand: {
             identifier: 'Y',
-            expr: {
-              type: 'Function',
+            func: {
               params: ['x'],
               bareExpr: {
                 type: 'Apply',

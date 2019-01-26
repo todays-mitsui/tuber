@@ -1,4 +1,5 @@
 import { Expr, Identifier } from "./Expr";
+import { Func } from "./Func";
 
 export type Action = 'Eval' | 'EvalLast' | 'EvalHead' | 'EvalTail' | 'Add' | 'Update' | 'Info' | 'Context'
 
@@ -16,9 +17,10 @@ export namespace Action {
 export interface Command {
     action: Action,
     operand?: {
-        identifier?: Identifier,
         expr?: Expr,
         length?: number,
+        identifier?: Identifier,
+        func?: Func
     },
 }
 

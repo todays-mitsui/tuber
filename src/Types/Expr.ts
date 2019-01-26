@@ -3,7 +3,6 @@ export type Expr = Variable
                    | Symbl
                    | Lambda
                    | Apply
-                   | Func
 
 
 export interface Variable {
@@ -31,12 +30,6 @@ export interface Apply {
     type: 'Apply',
     left: Expr,
     right: Expr,
-}
-
-export interface Func {
-    type: 'Function',
-    params: Identifier[],
-    bareExpr: Expr,
 }
 
 

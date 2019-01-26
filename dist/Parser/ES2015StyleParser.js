@@ -133,8 +133,7 @@ exports.CommandParser = P.createLanguage({
                 action: Command_1.Action.Add,
                 operand: {
                     identifier: funcName,
-                    expr: {
-                        type: 'Function',
+                    func: {
                         params,
                         bareExpr
                     },
@@ -149,8 +148,7 @@ exports.CommandParser = P.createLanguage({
                 action: Command_1.Action.Update,
                 operand: {
                     identifier: funcName,
-                    expr: {
-                        type: 'Function',
+                    func: {
                         params,
                         bareExpr
                     },
@@ -201,10 +199,14 @@ class ES2015StyleParser {
             case Command_1.Action.EvalLast:
             case Command_1.Action.EvalHead:
             case Command_1.Action.EvalTail:
+                {
+                    command.operand.expr = this.allocate(new Set([]), command.operand.expr);
+                    return command;
+                }
             case Command_1.Action.Add:
             case Command_1.Action.Update:
                 {
-                    command.operand.expr = this.allocate(new Set([]), command.operand.expr);
+                    command.operand.func.bareExpr = this.allocate(new Set(command.operand.func.params), command.operand.func.bareExpr);
                     return command;
                 }
             default: {
@@ -219,7 +221,6 @@ class ES2015StyleParser {
      * @param expr Variable と Combinator の振り分けがされる前の式
      */
     allocate(set, expr) {
-        console.info(expr);
         switch (expr.type) {
             case 'Variable': {
                 if (set.has(expr.label)) {
