@@ -1,5 +1,5 @@
 import { Expr, Identifier } from "./Expr";
-import { Func } from "./Func";
+import { Callable } from "./Callable";
 
 export type Action = 'Eval' | 'EvalLast' | 'EvalHead' | 'EvalTail' | 'Add' | 'Update' | 'Info' | 'Context'
 
@@ -20,7 +20,7 @@ export interface Command {
         expr?: Expr,
         length?: number,
         identifier?: Identifier,
-        func?: Func
+        callable?: Callable,
     },
 }
 

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const P = require("parsimmon");
+const immutable_1 = require("immutable");
 const Command_1 = require("../Types/Command");
 function token(parser) {
     return P.optWhitespace.then(parser).skip(P.optWhitespace);
@@ -133,7 +134,7 @@ exports.CommandParser = P.createLanguage({
                 action: Command_1.Action.Add,
                 operand: {
                     identifier: funcName,
-                    func: {
+                    callable: {
                         params,
                         bareExpr
                     },
@@ -148,7 +149,7 @@ exports.CommandParser = P.createLanguage({
                 action: Command_1.Action.Update,
                 operand: {
                     identifier: funcName,
-                    func: {
+                    callable: {
                         params,
                         bareExpr
                     },
@@ -190,7 +191,7 @@ class ES2015StyleParser {
     }
     parseExpr(src) {
         const expr = this.exprParser.expr.tryParse(src);
-        return this.allocate(new Set([]), expr);
+        return this.allocate(immutable_1.Set(), expr);
     }
     parseCommand(src) {
         const command = this.commandParser.command.tryParse(src);
@@ -200,13 +201,13 @@ class ES2015StyleParser {
             case Command_1.Action.EvalHead:
             case Command_1.Action.EvalTail:
                 {
-                    command.operand.expr = this.allocate(new Set([]), command.operand.expr);
+                    command.operand.expr = this.allocate(immutable_1.Set(), command.operand.expr);
                     return command;
                 }
             case Command_1.Action.Add:
             case Command_1.Action.Update:
                 {
-                    command.operand.func.bareExpr = this.allocate(new Set(command.operand.func.params), command.operand.func.bareExpr);
+                    command.operand.callable.bareExpr = this.allocate(immutable_1.Set(command.operand.callable.params), command.operand.callable.bareExpr);
                     return command;
                 }
             default: {
@@ -251,11 +252,10 @@ class ES2015StyleParser {
                 };
             }
             case 'Lambda': {
-                set.add(expr.param);
                 return {
                     type: 'Lambda',
                     param: expr.param,
-                    body: this.allocate(set, expr.body),
+                    body: this.allocate(set.add(expr.param), expr.body),
                 };
             }
         }

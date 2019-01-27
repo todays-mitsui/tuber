@@ -407,7 +407,7 @@ describe('ES2015StyleCommandParser', () => {
           action: 'Update',
           operand: {
             identifier: 'flip',
-            func: {
+            callable: {
               params: ['f'],
               bareExpr: {
                 type: 'Lambda',
@@ -449,7 +449,7 @@ describe('ES2015StyleCommandParser', () => {
           action: 'Update',
           operand: {
             identifier: 'true',
-            func: {
+            callable: {
               params: [],
               bareExpr: {
                 type: 'Lambda',
@@ -474,7 +474,7 @@ describe('ES2015StyleCommandParser', () => {
           action: 'Update',
           operand: {
             identifier: 's',
-            func: {
+            callable: {
               params: ['x', 'y', 'z'],
               bareExpr: {
                 type: 'Apply',
@@ -544,7 +544,7 @@ describe('ES2015StyleParser', () => {
           action: 'Add',
           operand: {
             identifier: 'Y',
-            func: {
+            callable: {
               params: ['x'],
               bareExpr: {
                 type: 'Apply',

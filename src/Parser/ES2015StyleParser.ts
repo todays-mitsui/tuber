@@ -1,4 +1,5 @@
 import * as P from 'parsimmon'
+import { Set } from 'immutable'
 
 import { Parser } from '../Types/Parser'
 import { Variable, Symbl, Identifier, Expr } from '../Types/Expr'
@@ -222,7 +223,7 @@ export const CommandParser = P.createLanguage({
                     action: Action.Add,
                     operand: {
                         identifier: funcName,
-                        func: {
+                        callable: {
                             params,
                             bareExpr
                         },
@@ -243,7 +244,7 @@ export const CommandParser = P.createLanguage({
                     action: Action.Update,
                     operand: {
                         identifier: funcName,
-                        func: {
+                        callable: {
                             params,
                             bareExpr
                         },
@@ -312,7 +313,7 @@ class ES2015StyleParser implements Parser {
     public parseExpr(src: string): Expr {
         const expr = this.exprParser.expr.tryParse(src)
 
-        return this.allocate(new Set([]), expr)
+        return this.allocate(Set(), expr)
     }
 
     public parseCommand(src: string): Command {
@@ -324,7 +325,7 @@ class ES2015StyleParser implements Parser {
             case Action.EvalHead:
             case Action.EvalTail:
             {
-                command.operand.expr = this.allocate(new Set([]), command.operand.expr)
+                command.operand.expr = this.allocate(Set(), command.operand.expr)
 
                 return command
             }
@@ -332,9 +333,9 @@ class ES2015StyleParser implements Parser {
             case Action.Add:
             case Action.Update:
             {
-                command.operand.func.bareExpr = this.allocate(
-                    new Set(command.operand.func.params),
-                    command.operand.func.bareExpr
+                command.operand.callable.bareExpr = this.allocate(
+                    Set(command.operand.callable.params),
+                    command.operand.callable.bareExpr
                 )
 
                 return command
@@ -385,12 +386,10 @@ class ES2015StyleParser implements Parser {
             }
 
             case 'Lambda': {
-                set.add(expr.param);
-
                 return {
                     type: 'Lambda',
                     param: expr.param,
-                    body: this.allocate(set, expr.body),
+                    body: this.allocate(set.add(expr.param), expr.body),
                 }
             }
         }
