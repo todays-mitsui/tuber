@@ -1,5 +1,5 @@
 import { OrderedMap } from 'immutable'
-import { Identifier, Expr, Lambda } from './Types/Expr';
+import { Identifier, Expr, Lambda, Combinator } from './Types/Expr';
 import { Callable } from './Types/Callable';
 import { ApplicationError } from './Error/ApplicationError';
 
@@ -19,11 +19,7 @@ class Func implements Callable {
     get body() {
         return this.params.reduceRight(
             (expr: Expr, identifier: Identifier): Lambda => {
-                return {
-                    type: 'Lambda',
-                    param: identifier,
-                    body: expr,
-                }
+                return new Lambda(identifier, expr)
             },
             this.bareExpr
         )
@@ -37,30 +33,30 @@ export class Context {
         this.map = OrderedMap()
     }
 
-    public add(identifier: Identifier, callable: Callable) {
-        if (this.map.has(identifier)) {
-            throw new ApplicationError(`識別子 '${identifier}' はすでに定義されています`)
+    public add(combinator: Combinator, callable: Callable) {
+        if (this.map.has(combinator.label)) {
+            throw new ApplicationError(`識別子 '${combinator.label}' はすでに定義されています`)
         }
 
-        this.map = this.map.set(identifier, new Func(callable))
+        this.map = this.map.set(combinator.label, new Func(callable))
 
         return this
     }
 
-    public update(identifier: Identifier, callable: Callable) {
-        this.map = this.map.set(identifier, new Func(callable))
+    public update(combinator: Combinator, callable: Callable) {
+        this.map = this.map.set(combinator.label, new Func(callable))
 
         return this
     }
 
-    public has(identifier: Identifier) {
-        return this.map.has(identifier)
+    public has(combinator: Combinator) {
+        return this.map.has(combinator.label)
     }
 
-    public get(identifier: Identifier) {
-        if (!this.map.has(identifier)) { return null }
+    public get(combinator: Combinator) {
+        if (!this.map.has(combinator.label)) { return null }
 
-        return this.map.get(identifier)
+        return this.map.get(combinator.label)
     }
 
     get size() {

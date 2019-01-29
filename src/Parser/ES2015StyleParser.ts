@@ -2,8 +2,9 @@ import * as P from 'parsimmon'
 import { Set } from 'immutable'
 
 import { Parser } from '../Types/Parser'
-import { Variable, Symbl, Identifier, Expr } from '../Types/Expr'
-import { Command, Action } from '../Types/Command';
+import { Variable, Symbl, Identifier, Expr, Lambda, Combinator, Apply } from '../Types/Expr'
+import { Command, Action, EvalCommand, EvalLastCommand, EvalHeadCommand, EvalTailCommand, AddCommand, UpdateCommand, InfoCommand, ContextCommand } from '../Types/Command';
+import { Callable } from '../Types/Callable';
 
 
 function token (parser: P.Parser<any>): P.Parser<any> {
@@ -37,11 +38,7 @@ export const ExprParser = P.createLanguage({
                 argss.reduce(
                     (e2: Expr, args: Expr[]) => (
                         args.reduce(
-                            (left, right) => ({
-                                type: 'Apply' as 'Apply',
-                                left,
-                                right
-                            }),
+                            (left, right) => ( new Apply(left, right) ),
                             e2
                         )
                     ),
@@ -80,11 +77,7 @@ export const ExprParser = P.createLanguage({
             token(optParens(r.expr)),
             (params: Identifier[], _, body: Expr): Expr => (
                 params.reduceRight(
-                    (body: Expr, param: Identifier) => ({
-                        type: 'Lambda' as 'Lambda',
-                        param,
-                        body
-                    }),
+                    (body, param) => ( new Lambda(param, body) ),
                     body
                 )
             )
@@ -102,20 +95,14 @@ export const ExprParser = P.createLanguage({
     // 変数
     variable(r): P.Parser<Variable> {
         return r.identifier
-            .map(identifier => ({
-                type: 'Variable' as 'Variable',
-                label: identifier,
-            }))
+            .map(identifier => ( new Variable(identifier) ))
             .skip(P.optWhitespace)
     },
 
     // シンボル
     symbl(r): P.Parser<Symbl> {
         return P.string(':').then(r.identifier)
-            .map(identifier => ({
-                type: 'Symbol' as 'Symbol',
-                label: identifier,
-            }))
+            .map(identifier => ( new Symbl(identifier) ))
             .skip(P.optWhitespace)
     },
 
@@ -144,14 +131,7 @@ export const CommandParser = P.createLanguage({
         return P.seqMap(
             token(ExprParser.expr),
             P.eof,
-            (expr: Expr, _) => {
-                return {
-                    action: Action.Eval,
-                    operand: {
-                        expr,
-                    },
-                }
-            }
+            (expr: Expr, _) => ( new EvalCommand(expr) )
         )
     },
 
@@ -161,14 +141,7 @@ export const CommandParser = P.createLanguage({
             token(P.string('!')),
             token(ExprParser.expr),
             P.eof,
-            (_1, expr, _3) => {
-                return {
-                    action: Action.EvalLast,
-                    operand: {
-                        expr,
-                    }
-                }
-            }
+            (_1, expr, _3) => ( new EvalLastCommand(expr) )
         )
     },
 
@@ -181,13 +154,9 @@ export const CommandParser = P.createLanguage({
             P.whitespace,
             ExprParser.expr,
             (_1, _2, numStr, _4, expr) => {
-                return {
-                    action: Action.EvalHead,
-                    operand: {
-                        expr,
-                        length: parseInt(numStr, 10),
-                    },
-                }
+                const maxLength = parseInt(numStr, 10)
+
+                return new EvalHeadCommand(expr, maxLength)
             }
         )
     },
@@ -201,13 +170,9 @@ export const CommandParser = P.createLanguage({
             P.whitespace,
             ExprParser.expr,
             (_1, _2, numStr, _4, expr) => {
-                return {
-                    action: Action.EvalTail,
-                    operand: {
-                        expr,
-                        length: parseInt(numStr, 10),
-                    },
-                }
+                const maxLength = parseInt(numStr, 10)
+
+                return new EvalTailCommand(expr, maxLength)
             }
         )
     },
@@ -218,18 +183,12 @@ export const CommandParser = P.createLanguage({
             token(r.lvalue),
             token(P.string(':=')),
             token(ExprParser.expr),
-            ([funcName, params], _, bareExpr) => {
-                return {
-                    action: Action.Add,
-                    operand: {
-                        identifier: funcName,
-                        callable: {
-                            params,
-                            bareExpr
-                        },
-                    }
-                }
-            }
+            ([funcName, params], _, bareExpr) => (
+                new AddCommand(
+                    funcName,
+                    new Callable(params, bareExpr)
+                )
+            )
         )
     },
 
@@ -239,18 +198,12 @@ export const CommandParser = P.createLanguage({
             token(r.lvalue),
             token(P.string('=')),
             token(ExprParser.expr),
-            ([funcName, params], _, bareExpr) => {
-                return {
-                    action: Action.Update,
-                    operand: {
-                        identifier: funcName,
-                        callable: {
-                            params,
-                            bareExpr
-                        },
-                    }
-                }
-            }
+            ([funcName, params], _, bareExpr) => (
+                new UpdateCommand(
+                    funcName,
+                    new Callable(params, bareExpr)
+                )
+            )
         )
     },
 
@@ -274,14 +227,7 @@ export const CommandParser = P.createLanguage({
             token(P.string('?')),
             token(ExprParser.identifier),
             P.eof,
-            (_1, identifier, _3) => {
-                return {
-                    action: Action.Info,
-                    operand: {
-                        identifier,
-                    }
-                }
-            }
+            (_1, identifier, _3) => ( new InfoCommand(identifier) )
         )
     },
 
@@ -291,11 +237,7 @@ export const CommandParser = P.createLanguage({
             P.string('?'),
             P.optWhitespace,
             P.eof,
-            () => {
-                return {
-                    action: Action.Context,
-                }
-            }
+            () => ( new ContextCommand() )
         )
     },
 })
@@ -319,32 +261,33 @@ class ES2015StyleParser implements Parser {
     public parseCommand(src: string): Command {
         const command = this.commandParser.command.tryParse(src)
 
-        switch (command.action) {
-            case Action.Eval:
-            case Action.EvalLast:
-            case Action.EvalHead:
-            case Action.EvalTail:
-            {
-                command.operand.expr = this.allocate(Set(), command.operand.expr)
-
-                return command
-            }
-
-            case Action.Add:
-            case Action.Update:
-            {
-                command.operand.callable.bareExpr = this.allocate(
-                    Set(command.operand.callable.params),
-                    command.operand.callable.bareExpr
-                )
-
-                return command
-            }
-
-            default: {
-                return command
-            }
+        if (
+            false
+            || command instanceof EvalCommand
+            || command instanceof EvalLastCommand
+            || command instanceof EvalHeadCommand
+            || command instanceof EvalTailCommand
+        ) {
+            return command.map(expr => this.allocate(Set(), expr))
         }
+
+        if (
+            false
+            || command instanceof AddCommand
+            || command instanceof UpdateCommand
+        ) {
+            return command.map(callable => (
+                new Callable(
+                    callable.params,
+                    this.allocate(
+                        Set(callable.params),
+                        callable.bareExpr
+                    )
+                )
+            ))
+        }
+
+        return command
     }
 
     /**
@@ -354,44 +297,34 @@ class ES2015StyleParser implements Parser {
      * @param expr Variable と Combinator の振り分けがされる前の式
      */
     private allocate(set: Set<Identifier>, expr: Expr): Expr {
-        switch (expr.type) {
-            case 'Variable': {
-                if (set.has(expr.label)) { return expr }
+        if (expr instanceof Variable) {
+            if (set.has(expr.label)) { return expr }
 
-                return {
-                    type: 'Combinator',
-                    label: expr.label,
-                }
-            }
+            return new Combinator(expr.label)
+        }
 
-            case 'Combinator': {
-                if (!set.has(expr.label)) { return expr }
+        if (expr instanceof Combinator) {
+            if (!set.has(expr.label)) { return expr }
 
-                return {
-                    type: 'Variable',
-                    label: expr.label,
-                }
-            }
+            return new Variable(expr.label)
+        }
 
-            case 'Symbol': {
-                return expr
-            }
+        if (expr instanceof Symbl) {
+            return expr
+        }
 
-            case 'Apply': {
-                return {
-                    type: 'Apply',
-                    left: this.allocate(set, expr.left),
-                    right: this.allocate(set, expr.right),
-                }
-            }
+        if (expr instanceof Apply) {
+            return new Apply(
+                this.allocate(set, expr.left),
+                this.allocate(set, expr.right)
+            )
+        }
 
-            case 'Lambda': {
-                return {
-                    type: 'Lambda',
-                    param: expr.param,
-                    body: this.allocate(set.add(expr.param), expr.body),
-                }
-            }
+        if (expr instanceof Lambda) {
+            return new Lambda(
+                expr.param,
+                this.allocate(set.add(expr.param), expr.body)
+            )
         }
     }
 }

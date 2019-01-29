@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const immutable_1 = require("immutable");
+const Expr_1 = require("./Types/Expr");
 const ApplicationError_1 = require("./Error/ApplicationError");
 class Func {
     constructor(callable) {
@@ -12,11 +13,7 @@ class Func {
     }
     get body() {
         return this.params.reduceRight((expr, identifier) => {
-            return {
-                type: 'Lambda',
-                param: identifier,
-                body: expr,
-            };
+            return new Expr_1.Lambda(identifier, expr);
         }, this.bareExpr);
     }
 }
@@ -24,25 +21,25 @@ class Context {
     constructor() {
         this.map = immutable_1.OrderedMap();
     }
-    add(identifier, callable) {
-        if (this.map.has(identifier)) {
-            throw new ApplicationError_1.ApplicationError(`識別子 '${identifier}' はすでに定義されています`);
+    add(combinator, callable) {
+        if (this.map.has(combinator.label)) {
+            throw new ApplicationError_1.ApplicationError(`識別子 '${combinator.label}' はすでに定義されています`);
         }
-        this.map = this.map.set(identifier, new Func(callable));
+        this.map = this.map.set(combinator.label, new Func(callable));
         return this;
     }
-    update(identifier, callable) {
-        this.map = this.map.set(identifier, new Func(callable));
+    update(combinator, callable) {
+        this.map = this.map.set(combinator.label, new Func(callable));
         return this;
     }
-    has(identifier) {
-        return this.map.has(identifier);
+    has(combinator) {
+        return this.map.has(combinator.label);
     }
-    get(identifier) {
-        if (!this.map.has(identifier)) {
+    get(combinator) {
+        if (!this.map.has(combinator.label)) {
             return null;
         }
-        return this.map.get(identifier);
+        return this.map.get(combinator.label);
     }
     get size() {
         return this.map.size;

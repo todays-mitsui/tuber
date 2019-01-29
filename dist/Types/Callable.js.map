@@ -1,1 +1,1 @@
-{"version":3,"file":"Callable.js","sourceRoot":"","sources":["../../src/Types/Callable.ts"],"names":[],"mappings":""}
+{"version":3,"file":"Callable.js","sourceRoot":"","sources":["../../src/Types/Callable.ts"],"names":[],"mappings":";;AAGA,MAAa,QAAQ;IACjB,YAA4B,MAAoB,EAAW,QAAc;QAA7C,WAAM,GAAN,MAAM,CAAc;QAAW,aAAQ,GAAR,QAAQ,CAAM;IACzE,CAAC;IAEM,MAAM;QACT,OAAO;YACH,MAAM,EAAE,IAAI,CAAC,MAAM;YACnB,QAAQ,EAAE,IAAI,CAAC,QAAQ,CAAC,MAAM,EAAE;SACnC,CAAA;IACL,CAAC;CACJ;AAVD,4BAUC"}

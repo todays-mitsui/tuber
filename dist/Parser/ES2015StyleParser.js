@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const P = require("parsimmon");
 const immutable_1 = require("immutable");
+const Expr_1 = require("../Types/Expr");
 const Command_1 = require("../Types/Command");
+const Callable_1 = require("../Types/Callable");
 function token(parser) {
     return P.optWhitespace.then(parser).skip(P.optWhitespace);
 }
@@ -21,11 +23,7 @@ exports.ExprParser = P.createLanguage({
     },
     // 関数適用
     applys(r) {
-        return P.seqMap(r.callable, token(token(r.args).wrap(P.string('('), P.string(')'))).many(), (e1, argss) => (argss.reduce((e2, args) => (args.reduce((left, right) => ({
-            type: 'Apply',
-            left,
-            right
-        }), e2)), e1)));
+        return P.seqMap(r.callable, token(token(r.args).wrap(P.string('('), P.string(')'))).many(), (e1, argss) => (argss.reduce((e2, args) => (args.reduce((left, right) => (new Expr_1.Apply(left, right)), e2)), e1)));
     },
     // 呼び出し可能な式
     // -> 変数 | コンビネーター | シンボル | パーレンで囲まれた任意の式
@@ -42,11 +40,7 @@ exports.ExprParser = P.createLanguage({
     },
     // 関数抽象
     lambda(r) {
-        return P.seqMap(token(optParens(r.params)), token(P.string('=>')), token(optParens(r.expr)), (params, _, body) => (params.reduceRight((body, param) => ({
-            type: 'Lambda',
-            param,
-            body
-        }), body)));
+        return P.seqMap(token(optParens(r.params)), token(P.string('=>')), token(optParens(r.expr)), (params, _, body) => (params.reduceRight((body, param) => (new Expr_1.Lambda(param, body)), body)));
     },
     // 仮引数
     params(r) {
@@ -57,19 +51,13 @@ exports.ExprParser = P.createLanguage({
     // 変数
     variable(r) {
         return r.identifier
-            .map(identifier => ({
-            type: 'Variable',
-            label: identifier,
-        }))
+            .map(identifier => (new Expr_1.Variable(identifier)))
             .skip(P.optWhitespace);
     },
     // シンボル
     symbl(r) {
         return P.string(':').then(r.identifier)
-            .map(identifier => ({
-            type: 'Symbol',
-            label: identifier,
-        }))
+            .map(identifier => (new Expr_1.Symbl(identifier)))
             .skip(P.optWhitespace);
     },
     // 識別子
@@ -83,79 +71,33 @@ exports.CommandParser = P.createLanguage({
     },
     // β変換列を表示
     eval() {
-        return P.seqMap(token(exports.ExprParser.expr), P.eof, (expr, _) => {
-            return {
-                action: Command_1.Action.Eval,
-                operand: {
-                    expr,
-                },
-            };
-        });
+        return P.seqMap(token(exports.ExprParser.expr), P.eof, (expr, _) => (new Command_1.EvalCommand(expr)));
     },
     // β変結果のみ表示
     evalLast() {
-        return P.seqMap(token(P.string('!')), token(exports.ExprParser.expr), P.eof, (_1, expr, _3) => {
-            return {
-                action: Command_1.Action.EvalLast,
-                operand: {
-                    expr,
-                }
-            };
-        });
+        return P.seqMap(token(P.string('!')), token(exports.ExprParser.expr), P.eof, (_1, expr, _3) => (new Command_1.EvalLastCommand(expr)));
     },
     // β変換列の先頭のみ表示
     evalHead() {
         return P.seqMap(P.optWhitespace, P.string(':'), P.digits, P.whitespace, exports.ExprParser.expr, (_1, _2, numStr, _4, expr) => {
-            return {
-                action: Command_1.Action.EvalHead,
-                operand: {
-                    expr,
-                    length: parseInt(numStr, 10),
-                },
-            };
+            const maxLength = parseInt(numStr, 10);
+            return new Command_1.EvalHeadCommand(expr, maxLength);
         });
     },
     // β変換列の末尾のみ表示
     evalTail() {
         return P.seqMap(P.optWhitespace, P.string(':-'), P.digits, P.whitespace, exports.ExprParser.expr, (_1, _2, numStr, _4, expr) => {
-            return {
-                action: Command_1.Action.EvalTail,
-                operand: {
-                    expr,
-                    length: parseInt(numStr, 10),
-                },
-            };
+            const maxLength = parseInt(numStr, 10);
+            return new Command_1.EvalTailCommand(expr, maxLength);
         });
     },
     // 関数定義(定義済み関数の上書きを許さない)
     add(r) {
-        return P.seqMap(token(r.lvalue), token(P.string(':=')), token(exports.ExprParser.expr), ([funcName, params], _, bareExpr) => {
-            return {
-                action: Command_1.Action.Add,
-                operand: {
-                    identifier: funcName,
-                    callable: {
-                        params,
-                        bareExpr
-                    },
-                }
-            };
-        });
+        return P.seqMap(token(r.lvalue), token(P.string(':=')), token(exports.ExprParser.expr), ([funcName, params], _, bareExpr) => (new Command_1.AddCommand(funcName, new Callable_1.Callable(params, bareExpr))));
     },
     // 関数定義(定義済み関数の上書きを許す)
     update(r) {
-        return P.seqMap(token(r.lvalue), token(P.string('=')), token(exports.ExprParser.expr), ([funcName, params], _, bareExpr) => {
-            return {
-                action: Command_1.Action.Update,
-                operand: {
-                    identifier: funcName,
-                    callable: {
-                        params,
-                        bareExpr
-                    },
-                }
-            };
-        });
+        return P.seqMap(token(r.lvalue), token(P.string('=')), token(exports.ExprParser.expr), ([funcName, params], _, bareExpr) => (new Command_1.UpdateCommand(funcName, new Callable_1.Callable(params, bareExpr))));
     },
     // 関数定義の左辺値
     lvalue() {
@@ -165,22 +107,11 @@ exports.CommandParser = P.createLanguage({
     },
     // Context から定義済み関数を検索する
     info() {
-        return P.seqMap(token(P.string('?')), token(exports.ExprParser.identifier), P.eof, (_1, identifier, _3) => {
-            return {
-                action: Command_1.Action.Info,
-                operand: {
-                    identifier,
-                }
-            };
-        });
+        return P.seqMap(token(P.string('?')), token(exports.ExprParser.identifier), P.eof, (_1, identifier, _3) => (new Command_1.InfoCommand(identifier)));
     },
     // Context 全体を参照
     context() {
-        return P.seqMap(P.string('?'), P.optWhitespace, P.eof, () => {
-            return {
-                action: Command_1.Action.Context,
-            };
-        });
+        return P.seqMap(P.string('?'), P.optWhitespace, P.eof, () => (new Command_1.ContextCommand()));
     },
 });
 class ES2015StyleParser {
@@ -195,25 +126,19 @@ class ES2015StyleParser {
     }
     parseCommand(src) {
         const command = this.commandParser.command.tryParse(src);
-        switch (command.action) {
-            case Command_1.Action.Eval:
-            case Command_1.Action.EvalLast:
-            case Command_1.Action.EvalHead:
-            case Command_1.Action.EvalTail:
-                {
-                    command.operand.expr = this.allocate(immutable_1.Set(), command.operand.expr);
-                    return command;
-                }
-            case Command_1.Action.Add:
-            case Command_1.Action.Update:
-                {
-                    command.operand.callable.bareExpr = this.allocate(immutable_1.Set(command.operand.callable.params), command.operand.callable.bareExpr);
-                    return command;
-                }
-            default: {
-                return command;
-            }
+        if (false
+            || command instanceof Command_1.EvalCommand
+            || command instanceof Command_1.EvalLastCommand
+            || command instanceof Command_1.EvalHeadCommand
+            || command instanceof Command_1.EvalTailCommand) {
+            return command.map(expr => this.allocate(immutable_1.Set(), expr));
         }
+        if (false
+            || command instanceof Command_1.AddCommand
+            || command instanceof Command_1.UpdateCommand) {
+            return command.map(callable => (new Callable_1.Callable(callable.params, this.allocate(immutable_1.Set(callable.params), callable.bareExpr))));
+        }
+        return command;
     }
     /**
      * Variable と Combinator の振り分けがされていない式に対して、正しく振り分けを行う
@@ -222,42 +147,26 @@ class ES2015StyleParser {
      * @param expr Variable と Combinator の振り分けがされる前の式
      */
     allocate(set, expr) {
-        switch (expr.type) {
-            case 'Variable': {
-                if (set.has(expr.label)) {
-                    return expr;
-                }
-                return {
-                    type: 'Combinator',
-                    label: expr.label,
-                };
-            }
-            case 'Combinator': {
-                if (!set.has(expr.label)) {
-                    return expr;
-                }
-                return {
-                    type: 'Variable',
-                    label: expr.label,
-                };
-            }
-            case 'Symbol': {
+        if (expr instanceof Expr_1.Variable) {
+            if (set.has(expr.label)) {
                 return expr;
             }
-            case 'Apply': {
-                return {
-                    type: 'Apply',
-                    left: this.allocate(set, expr.left),
-                    right: this.allocate(set, expr.right),
-                };
+            return new Expr_1.Combinator(expr.label);
+        }
+        if (expr instanceof Expr_1.Combinator) {
+            if (!set.has(expr.label)) {
+                return expr;
             }
-            case 'Lambda': {
-                return {
-                    type: 'Lambda',
-                    param: expr.param,
-                    body: this.allocate(set.add(expr.param), expr.body),
-                };
-            }
+            return new Expr_1.Variable(expr.label);
+        }
+        if (expr instanceof Expr_1.Symbl) {
+            return expr;
+        }
+        if (expr instanceof Expr_1.Apply) {
+            return new Expr_1.Apply(this.allocate(set, expr.left), this.allocate(set, expr.right));
+        }
+        if (expr instanceof Expr_1.Lambda) {
+            return new Expr_1.Lambda(expr.param, this.allocate(set.add(expr.param), expr.body));
         }
     }
 }

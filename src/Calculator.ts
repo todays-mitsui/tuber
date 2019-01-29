@@ -1,6 +1,8 @@
 import { ContextLoader } from "./ContextLoader";
-import { Expr, Identifier } from "./Types/Expr";
+import { Expr, Identifier, Combinator } from "./Types/Expr";
 import { Context } from "./Context";
+import { Focus } from "./Focus";
+import { Stack } from "immutable";
 
 export class Calculator {
     private _context: Context
@@ -9,7 +11,19 @@ export class Calculator {
         this._context = this.contextLoader.load()
     }
 
-    public eval(expr: Expr) {
+    public eval(expr: Expr): [Expr[], Focus] {
+        const focus = new Focus(expr)
+        const tryStack = Stack()
+
+        Calculator.traverse(focus, )
+    }
+
+    static traverse() {
+
+    }
+
+    static _reduce(focus: Focus): Expr|Focus[]|null {
+        focus
     }
 
     public evalLast(expr: Expr) {
@@ -18,8 +32,8 @@ export class Calculator {
     public evalTail(expr: Expr) {
     }
 
-    public info(identifier: Identifier) {
-        return this._context.get(identifier)
+    public info(combinator: Combinator) {
+        return this._context.get(combinator)
     }
 
     get context() {
