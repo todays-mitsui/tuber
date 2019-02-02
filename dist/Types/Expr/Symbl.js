@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Expr_1 = require("../Expr");
+const Expr_1 = require("./Expr");
 const Apply_1 = require("./Apply");
 const Result_1 = require("../../Result");
 class Symbl extends Expr_1.Expr {

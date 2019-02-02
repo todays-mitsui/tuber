@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const immutable_1 = require("immutable");
-const Expr_1 = require("../Expr");
+const Expr_1 = require("./Expr");
 const Route_1 = require("../../Route");
 const Result_1 = require("../../Result");
 class Apply extends Expr_1.Expr {

@@ -1,7 +1,9 @@
 import { OrderedMap } from 'immutable'
-import { Identifier, Expr, Lambda, Combinator } from './Types/Expr';
+import { Identifier, Expr } from './Types/Expr';
 import { Callable } from './Types/Callable';
 import { ApplicationError } from './Error/ApplicationError';
+import { Combinator } from './Types/Expr/Combinator';
+import { Lambda } from './Types/Expr/Lambda';
 
 class Func implements Callable {
     public params: Identifier[]
@@ -23,6 +25,13 @@ class Func implements Callable {
             },
             this.bareExpr
         )
+    }
+
+    public toJSON() {
+        return {
+            params: this.params,
+            bareExpr: this.bareExpr.toJSON(),
+        }
     }
 }
 

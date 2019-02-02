@@ -2,9 +2,14 @@ import * as P from 'parsimmon'
 import { Set } from 'immutable'
 
 import { Parser } from '../Types/Parser'
-import { Variable, Symbl, Identifier, Expr, Lambda, Combinator, Apply } from '../Types/Expr'
-import { Command, Action, EvalCommand, EvalLastCommand, EvalHeadCommand, EvalTailCommand, AddCommand, UpdateCommand, InfoCommand, ContextCommand } from '../Types/Command';
+import { Identifier, Expr } from '../Types/Expr'
+import { Command, EvalCommand, EvalLastCommand, EvalHeadCommand, EvalTailCommand, AddCommand, UpdateCommand, InfoCommand, ContextCommand } from '../Types/Command';
 import { Callable } from '../Types/Callable';
+import { Apply } from '../Types/Expr/Apply';
+import { Lambda } from '../Types/Expr/Lambda';
+import { Variable } from '../Types/Expr/Variable';
+import { Symbl } from '../Types/Expr/Symbl';
+import { Combinator } from '../Types/Expr/Combinator';
 
 
 function token (parser: P.Parser<any>): P.Parser<any> {
