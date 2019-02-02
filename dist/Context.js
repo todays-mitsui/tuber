@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const immutable_1 = require("immutable");
+const Expr_1 = require("./Types/Expr");
 const ApplicationError_1 = require("./Error/ApplicationError");
-const Lambda_1 = require("./Types/Expr/Lambda");
 class Func {
     constructor(callable) {
         this.params = callable.params;
@@ -13,7 +13,7 @@ class Func {
     }
     get body() {
         return this.params.reduceRight((expr, identifier) => {
-            return new Lambda_1.Lambda(identifier, expr);
+            return new Expr_1.Lambda(identifier, expr);
         }, this.bareExpr);
     }
     toJSON() {

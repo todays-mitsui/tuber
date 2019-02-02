@@ -1,8 +1,6 @@
 import { ContextLoader } from "./ContextLoader";
-import { Expr } from "./Types/Expr";
+import { Expr, Combinator } from "./Types/Expr";
 import { Context } from "./Context";
-import { Stack } from "immutable";
-import { Combinator } from "./Types/Expr/Combinator";
 
 export class Calculator {
     private _context: Context

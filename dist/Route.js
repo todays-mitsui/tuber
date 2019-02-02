@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const immutable_1 = require("immutable");
 const Expr_1 = require("./Types/Expr");
-const Apply_1 = require("./Types/Expr/Apply");
 const ApplicationError_1 = require("./Error/ApplicationError");
 const isStack = immutable_1.Stack.isStack;
 class Route {
@@ -47,13 +46,13 @@ class Route {
         const breadcrumb = breadcrumbs.first();
         if (breadcrumb instanceof Expr_1.Expr) {
             const left = breadcrumb;
-            const newExpr = new Apply_1.Apply(left, current);
+            const newExpr = new Expr_1.Apply(left, current);
             return this._reassemble(newExpr, breadcrumbs.shift());
         }
         else if (isStack(breadcrumb)) {
             const rightTrees = breadcrumb;
             const newExpr = rightTrees.reduce((expr, right) => {
-                return new Apply_1.Apply(expr, right);
+                return new Expr_1.Apply(expr, right);
             }, current);
             return this._reassemble(newExpr, breadcrumbs.shift());
         }

@@ -1,7 +1,6 @@
 import { Stack } from 'immutable'
 
-import { Expr } from './Types/Expr';
-import { Apply } from './Types/Expr/Apply';
+import { Expr, Apply } from './Types/Expr';
 import { ApplicationError } from './Error/ApplicationError';
 
 const isStack = Stack.isStack

@@ -2,13 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const P = require("parsimmon");
 const immutable_1 = require("immutable");
+const Expr_1 = require("../Types/Expr");
 const Command_1 = require("../Types/Command");
 const Callable_1 = require("../Types/Callable");
-const Apply_1 = require("../Types/Expr/Apply");
-const Lambda_1 = require("../Types/Expr/Lambda");
-const Variable_1 = require("../Types/Expr/Variable");
-const Symbl_1 = require("../Types/Expr/Symbl");
-const Combinator_1 = require("../Types/Expr/Combinator");
 function token(parser) {
     return P.optWhitespace.then(parser).skip(P.optWhitespace);
 }
@@ -27,7 +23,7 @@ exports.ExprParser = P.createLanguage({
     },
     // 関数適用
     applys(r) {
-        return P.seqMap(r.callable, token(token(r.args).wrap(P.string('('), P.string(')'))).many(), (e1, argss) => (argss.reduce((e2, args) => (args.reduce((left, right) => (new Apply_1.Apply(left, right)), e2)), e1)));
+        return P.seqMap(r.callable, token(token(r.args).wrap(P.string('('), P.string(')'))).many(), (e1, argss) => (argss.reduce((e2, args) => (args.reduce((left, right) => (new Expr_1.Apply(left, right)), e2)), e1)));
     },
     // 呼び出し可能な式
     // -> 変数 | コンビネーター | シンボル | パーレンで囲まれた任意の式
@@ -44,7 +40,7 @@ exports.ExprParser = P.createLanguage({
     },
     // 関数抽象
     lambda(r) {
-        return P.seqMap(token(optParens(r.params)), token(P.string('=>')), token(optParens(r.expr)), (params, _, body) => (params.reduceRight((body, param) => (new Lambda_1.Lambda(param, body)), body)));
+        return P.seqMap(token(optParens(r.params)), token(P.string('=>')), token(optParens(r.expr)), (params, _, body) => (params.reduceRight((body, param) => (new Expr_1.Lambda(param, body)), body)));
     },
     // 仮引数
     params(r) {
@@ -55,13 +51,13 @@ exports.ExprParser = P.createLanguage({
     // 変数
     variable(r) {
         return r.identifier
-            .map(identifier => (new Variable_1.Variable(identifier)))
+            .map(identifier => (new Expr_1.Variable(identifier)))
             .skip(P.optWhitespace);
     },
     // シンボル
     symbl(r) {
         return P.string(':').then(r.identifier)
-            .map(identifier => (new Symbl_1.Symbl(identifier)))
+            .map(identifier => (new Expr_1.Symbl(identifier)))
             .skip(P.optWhitespace);
     },
     // 識別子
@@ -151,26 +147,26 @@ class ES2015StyleParser {
      * @param expr Variable と Combinator の振り分けがされる前の式
      */
     allocate(set, expr) {
-        if (expr instanceof Variable_1.Variable) {
+        if (expr instanceof Expr_1.Variable) {
             if (set.has(expr.label)) {
                 return expr;
             }
-            return new Combinator_1.Combinator(expr.label);
+            return new Expr_1.Combinator(expr.label);
         }
-        if (expr instanceof Combinator_1.Combinator) {
+        if (expr instanceof Expr_1.Combinator) {
             if (!set.has(expr.label)) {
                 return expr;
             }
-            return new Variable_1.Variable(expr.label);
+            return new Expr_1.Variable(expr.label);
         }
-        if (expr instanceof Symbl_1.Symbl) {
+        if (expr instanceof Expr_1.Symbl) {
             return expr;
         }
-        if (expr instanceof Apply_1.Apply) {
-            return new Apply_1.Apply(this.allocate(set, expr.left), this.allocate(set, expr.right));
+        if (expr instanceof Expr_1.Apply) {
+            return new Expr_1.Apply(this.allocate(set, expr.left), this.allocate(set, expr.right));
         }
-        if (expr instanceof Lambda_1.Lambda) {
-            return new Lambda_1.Lambda(expr.param, this.allocate(set.add(expr.param), expr.body));
+        if (expr instanceof Expr_1.Lambda) {
+            return new Expr_1.Lambda(expr.param, this.allocate(set.add(expr.param), expr.body));
         }
     }
 }
