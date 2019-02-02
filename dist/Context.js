@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const ramda_1 = require("ramda");
 const immutable_1 = require("immutable");
 const Expr_1 = require("./Types/Expr");
 const ApplicationError_1 = require("./Error/ApplicationError");
@@ -15,6 +16,15 @@ class Func {
         return this.params.reduceRight((expr, identifier) => {
             return new Expr_1.Lambda(identifier, expr);
         }, this.bareExpr);
+    }
+    invoke(...args) {
+        const pairs = ramda_1.zip(this.params, args);
+        let body = this.bareExpr;
+        for (let i = 0, len = pairs.length; i < len; i++) {
+            const [param, expr] = pairs[i];
+            body = body.rewrite(param, expr);
+        }
+        return body;
     }
     toJSON() {
         return {

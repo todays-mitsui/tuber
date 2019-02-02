@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = require("../Route");
 const Result_1 = require("../Result");
 const immutable_1 = require("immutable");
+const ApplicationError_1 = require("../Error/ApplicationError");
 var ExprType;
 (function (ExprType) {
     ExprType.Variable = 'Variable';
@@ -44,13 +45,8 @@ class Variable extends Expr {
     tryReduce(context, route) {
         return new Result_1.Fail();
     }
-    invoke(context, args) {
-        return args.reduce((expr, arg) => {
-            return new Apply(expr, arg);
-        }, this);
-    }
-    rewrite(variable, expr) {
-        return this.label === variable.label ? expr : this;
+    rewrite(identifier, expr) {
+        return this.label === identifier ? expr : this;
     }
     toJSON() {
         return {
@@ -76,18 +72,13 @@ class Combinator extends Expr {
         try {
             const arity = func.arity;
             const [args, newRoute] = route.popRightTrees(arity);
-            return new Result_1.Just(newRoute.reassemble(this.invoke(context, args)));
+            return new Result_1.Just(newRoute.reassemble(func.invoke(...args)));
         }
         catch (e) {
             return new Result_1.Fail();
         }
     }
-    invoke(context, args) {
-        return args.reduce((expr, arg) => {
-            return new Apply(expr, arg);
-        }, this);
-    }
-    rewrite(variable, expr) {
+    rewrite(identifier, expr) {
         return this;
     }
     toJSON() {
@@ -110,11 +101,9 @@ class Symbl extends Expr {
         return new Result_1.Fail();
     }
     invoke(context, args) {
-        return args.reduce((expr, arg) => {
-            return new Apply(expr, arg);
-        }, this);
+        throw new ApplicationError_1.ApplicationError('Unable to invoke');
     }
-    rewrite(variable, expr) {
+    rewrite(identifier, expr) {
         return this;
     }
     toJSON() {
@@ -137,24 +126,17 @@ class Lambda extends Expr {
     tryReduce(context, route) {
         try {
             const [[arg], newRoute] = route.popRightTrees(1);
-            return new Result_1.Just(newRoute.reassemble(this.invoke(context, [arg])));
+            return new Result_1.Just(newRoute.reassemble(this.rewrite(this.param, arg)));
         }
         catch (e) {
             return new Result_1.Fail();
         }
     }
-    invoke(context, args) {
-        const [head] = args.slice(0, 1);
-        const tail = args.slice(1);
-        return tail.reduce((expr, arg) => {
-            return new Apply(expr, arg);
-        }, this.rewrite(new Variable(this.param), head));
-    }
-    rewrite(variable, expr) {
-        if (this.param === variable.label) {
+    rewrite(identifier, expr) {
+        if (this.param === identifier) {
             return this;
         }
-        return new Lambda(this.param, this.body.rewrite(variable, expr));
+        return new Lambda(this.param, this.body.rewrite(identifier, expr));
     }
     toJSON() {
         return {
@@ -193,11 +175,8 @@ class Apply extends Expr {
             [this.right, route.goLeft(this.left)],
         ]);
     }
-    invoke(context, args) {
-        return undefined;
-    }
-    rewrite(variable, expr) {
-        return new Apply(this.left.rewrite(variable, expr), this.right.rewrite(variable, expr));
+    rewrite(identifier, expr) {
+        return new Apply(this.left.rewrite(identifier, expr), this.right.rewrite(identifier, expr));
     }
     toJSON() {
         return {

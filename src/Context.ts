@@ -1,4 +1,6 @@
+import { zip } from 'ramda'
 import { OrderedMap } from 'immutable'
+
 import { Identifier, Expr, Combinator, Lambda } from './Types/Expr';
 import { Callable } from './Types/Callable';
 import { ApplicationError } from './Error/ApplicationError';
@@ -23,6 +25,20 @@ class Func implements Callable {
             },
             this.bareExpr
         )
+    }
+
+    public invoke(...args: Expr[]): Expr {
+        const pairs = zip(this.params, args);
+
+        let body = this.bareExpr;
+
+        for (let i = 0, len = pairs.length; i < len; i++) {
+          const [param, expr] = pairs[i];
+
+          body = body.rewrite(param, expr);
+        }
+
+        return body;
     }
 
     public toJSON() {

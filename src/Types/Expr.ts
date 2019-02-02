@@ -3,6 +3,7 @@ import { ToJSON } from "../Interface/ToJSON";
 import { Route } from "../Route";
 import { Result, Just, Try, Fail } from "../Result";
 import { Stack } from "immutable";
+import { ApplicationError } from "../Error/ApplicationError";
 
 
 export type ExprType = 'Variable' | 'Combinator' | 'Symbol' | 'Lambda' | 'Apply'
@@ -53,8 +54,8 @@ export interface ApplyJSON {
 export abstract class Expr implements ToJSON {
     abstract reduce(context: Context): Expr
     abstract tryReduce(context: Context, route: Route): Result
-    abstract invoke(context: Context, args: Expr[]): Expr
-    abstract rewrite(variable: Variable, expr: Expr): Expr
+    // abstract invoke(context: Context, args: Expr[]): Expr
+    abstract rewrite(identifier: Identifier, expr: Expr): Expr
 
     static fromJSON(json: ExprJSON): Expr {
         switch (json.type) {
@@ -99,14 +100,8 @@ export class Variable extends Expr {
         return new Fail()
     }
 
-    public invoke(context: Context, args: Expr[]) {
-        return args.reduce((expr, arg) => {
-            return new Apply(expr, arg)
-        }, this)
-    }
-
-    public rewrite(variable: Variable, expr: Expr): Expr {
-        return this.label === variable.label ? expr : this
+    public rewrite(identifier: Identifier, expr: Expr): Expr {
+        return this.label === identifier ? expr : this
     }
 
     public toJSON() {
@@ -136,19 +131,13 @@ export class Combinator extends Expr {
             const arity = func.arity
             const [args, newRoute] = route.popRightTrees(arity)
 
-            return new Just(newRoute.reassemble(this.invoke(context, args)))
+            return new Just(newRoute.reassemble(func.invoke(...args)))
         } catch (e) {
             return new Fail()
         }
-}
-
-    public invoke(context: Context, args: Expr[]) {
-        return args.reduce((expr, arg) => {
-            return new Apply(expr, arg)
-        }, this)
     }
 
-    public rewrite(variable: Variable, expr: Expr): Combinator {
+    public rewrite(identifier: Identifier, expr: Expr): Combinator {
         return this
     }
 
@@ -174,13 +163,11 @@ export class Symbl extends Expr {
         return new Fail()
     }
 
-    public invoke(context: Context, args: Expr[]) {
-        return args.reduce((expr, arg) => {
-            return new Apply(expr, arg)
-        }, this)
+    public invoke(context: Context, args: Expr[]): Expr {
+        throw new ApplicationError('Unable to invoke')
     }
 
-    public rewrite(variable: Variable, expr: Expr): Symbl {
+    public rewrite(identifier: Identifier, expr: Expr): Symbl {
         return this
     }
 
@@ -206,28 +193,16 @@ export class Lambda extends Expr {
         try {
             const [[arg], newRoute] = route.popRightTrees(1)
 
-            return new Just(newRoute.reassemble(this.invoke(context, [arg])))
+            return new Just(newRoute.reassemble(this.rewrite(this.param, arg)))
         } catch (e) {
             return new Fail()
         }
     }
 
-    public invoke(context: Context, args: Expr[]): Expr {
-        const [head] = args.slice(0, 1);
-        const tail = args.slice(1);
+    public rewrite(identifier: Identifier, expr: Expr) {
+        if (this.param === identifier) { return this; }
 
-        return tail.reduce(
-            (expr, arg) => {
-                return new Apply(expr, arg)
-            },
-            this.rewrite(new Variable(this.param), head)
-        )
-    }
-
-    public rewrite(variable: Variable, expr: Expr) {
-        if (this.param === variable.label) { return this; }
-
-        return new Lambda(this.param, this.body.rewrite(variable, expr))
+        return new Lambda(this.param, this.body.rewrite(identifier, expr))
     }
 
     public toJSON() {
@@ -272,14 +247,10 @@ export class Apply extends Expr {
         ])
     }
 
-    public invoke(context: Context, args: Expr[]): Expr {
-        return undefined as Expr
-    }
-
-    public rewrite(variable: Variable, expr: Expr) {
+    public rewrite(identifier: Identifier, expr: Expr) {
         return new Apply(
-            this.left.rewrite(variable, expr),
-            this.right.rewrite(variable, expr)
+            this.left.rewrite(identifier, expr),
+            this.right.rewrite(identifier, expr)
         )
     }
 
