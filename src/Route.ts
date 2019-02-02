@@ -1,18 +1,19 @@
 import { Stack } from 'immutable'
 
-import { Expr, Apply } from './Types/Expr';
+import { Expr } from './Types/Expr';
+import { Apply } from './Types/Expr/Apply';
 import { ApplicationError } from './Error/ApplicationError';
 
 const isStack = Stack.isStack
 
-export class Location {
+export class Route {
     public constructor(private breadcrumbs: Stack<Expr|Stack<Expr>>) {
     }
 
     public goRight(left: Expr) {
         const newBreadcrumbs = this.breadcrumbs.push(left)
 
-        return new Location(newBreadcrumbs)
+        return new Route(newBreadcrumbs)
     }
 
     public goLeft(right: Expr) {
@@ -22,10 +23,10 @@ export class Location {
             ? this.breadcrumbs.shift().push(breadcrumb.push(right))
             : this.breadcrumbs.push(Stack.of(right))
 
-        return new Location(newBreadcrumbs)
+        return new Route(newBreadcrumbs)
     }
 
-    public popRightTrees(size: number): [Expr[], Location] {
+    public popRightTrees(size: number): [Expr[], Route] {
         const rightTrees = this.breadcrumbs.first()
 
         if (!isStack(rightTrees)) {
@@ -43,12 +44,12 @@ export class Location {
 
         return [
             rightTrees.slice(0, size).toArray(),
-            new Location(newBreadcrumbs),
+            new Route(newBreadcrumbs),
         ]
     }
 
     public reassemble(current: Expr) {
-        return Location._reassemble(current, this.breadcrumbs)
+        return Route._reassemble(current, this.breadcrumbs)
     }
 
     static _reassemble(current: Expr, breadcrumbs: Stack<Expr|Stack<Expr>>) {
@@ -58,26 +59,18 @@ export class Location {
 
         const breadcrumb = breadcrumbs.first()
 
-        if (isStack(breadcrumb)) {
+        if (breadcrumb instanceof Expr) {
+            const left = breadcrumb
+
+            const newExpr = new Apply(left, current)
+
+            return this._reassemble(newExpr, breadcrumbs.shift())
+        } else if (isStack(breadcrumb)) {
             const rightTrees = breadcrumb
 
             const newExpr = rightTrees.reduce((expr, right): Apply => {
-                return {
-                    type: 'Apply',
-                    left: expr,
-                    right
-                }
+                return new Apply(expr, right)
             }, current);
-
-            return this._reassemble(newExpr, breadcrumbs.shift())
-        } else {
-            const left = breadcrumb
-
-            const newExpr = {
-                type: 'Apply',
-                left,
-                right: current,
-            } as Apply
 
             return this._reassemble(newExpr, breadcrumbs.shift())
         }
