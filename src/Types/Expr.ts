@@ -123,15 +123,15 @@ export class Combinator extends Expr {
     }
 
     public tryReduce(context: Context, route: Route) {
-        const func = context.get(this)
+        const callable = context.get(this)
 
-        if (!func) { return new Fail() }
+        if (!callable) { return new Fail() }
 
         try {
-            const arity = func.arity
+            const arity = callable.arity
             const [args, newRoute] = route.popRightTrees(arity)
 
-            return new Just(newRoute.reassemble(func.invoke(...args)))
+            return new Just(newRoute.reassemble(callable.call(...args)))
         } catch (e) {
             return new Fail()
         }
@@ -221,10 +221,15 @@ export class Apply extends Expr {
     }
 
     public reduce(context: Context): Expr {
-        let [current, route] = [this.left, Route.root().goLeft(this.right)]
-        let tryStack = Stack.of([this.right, Route.root().goRight(this.left)]) as Stack<[Expr, Route]>
+        let tryStack = Stack.of(
+            [this.left , Route.root().goLeft(this.right)],
+            [this.right, Route.root().goRight(this.left)]
+        ) as Stack<[Expr, Route]>
 
         do {
+            const [current, route] = tryStack.first()
+            tryStack = tryStack.shift()
+
             let result = current.tryReduce(context, route)
 
             if (result instanceof Try) {
@@ -232,12 +237,9 @@ export class Apply extends Expr {
             } else if (result instanceof Just) {
                 return result.val
             }
-
-            [current, route] = tryStack.first()
-            tryStack = tryStack.shift()
         } while (!tryStack.isEmpty())
 
-        return undefined as Expr
+        return null as Expr
     }
 
     public tryReduce(context: Context, route: Route): Result {

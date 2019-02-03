@@ -65,14 +65,14 @@ class Combinator extends Expr {
         return null;
     }
     tryReduce(context, route) {
-        const func = context.get(this);
-        if (!func) {
+        const callable = context.get(this);
+        if (!callable) {
             return new Result_1.Fail();
         }
         try {
-            const arity = func.arity;
+            const arity = callable.arity;
             const [args, newRoute] = route.popRightTrees(arity);
-            return new Result_1.Just(newRoute.reassemble(func.invoke(...args)));
+            return new Result_1.Just(newRoute.reassemble(callable.call(...args)));
         }
         catch (e) {
             return new Result_1.Fail();
@@ -154,9 +154,10 @@ class Apply extends Expr {
         this.right = right;
     }
     reduce(context) {
-        let [current, route] = [this.left, Route_1.Route.root().goLeft(this.right)];
-        let tryStack = immutable_1.Stack.of([this.right, Route_1.Route.root().goRight(this.left)]);
+        let tryStack = immutable_1.Stack.of([this.left, Route_1.Route.root().goLeft(this.right)], [this.right, Route_1.Route.root().goRight(this.left)]);
         do {
+            const [current, route] = tryStack.first();
+            tryStack = tryStack.shift();
             let result = current.tryReduce(context, route);
             if (result instanceof Result_1.Try) {
                 tryStack = tryStack.push(...result.val);
@@ -164,10 +165,8 @@ class Apply extends Expr {
             else if (result instanceof Result_1.Just) {
                 return result.val;
             }
-            [current, route] = tryStack.first();
-            tryStack = tryStack.shift();
         } while (!tryStack.isEmpty());
-        return undefined;
+        return null;
     }
     tryReduce(context, route) {
         return new Result_1.Try([

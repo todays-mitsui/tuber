@@ -1,6 +1,6 @@
 const parser = require('../../dist/Parser/ES2015StyleParser').default
-const ExprParser = require('../../dist/Parser/ES2015StyleParser').ExprParser
-const CommandParser = require('../../dist/Parser/ES2015StyleParser').CommandParser
+const { ExprParser } = require('../../dist/Parser/ES2015StyleParser')
+const { CommandParser } = require('../../dist/Parser/ES2015StyleParser')
 
 
 describe('ES2015StyleExprParser', () => {
