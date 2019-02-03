@@ -11,7 +11,7 @@ context
   .add(exprs['k'], callables['k'])
   .add(exprs['i'], callables['i'])
 
-describe('Recude', () => {
+describe('Reduce', () => {
   test('i(:x) -> :x', () => {
     const expr = Expr.fromJSON({
       type: 'Apply',
@@ -183,6 +183,52 @@ describe('Recude', () => {
       .toEqual({
         type: 'Symbol',
         label: 'A',
+      })
+  })
+
+  test('(x=>y=>y(x))(:A) -> y=>y(:A)', () => {
+    const expr = Expr.fromJSON({
+      type: 'Apply',
+      left: {
+        type: 'Lambda',
+        param: 'x',
+        body: {
+          type: 'Lambda',
+          param: 'y',
+          body: {
+            type: 'Apply',
+            left: {
+              type: 'Variable',
+              label: 'x',
+            },
+            right: {
+              type: 'Variable',
+              label: 'y',
+            },
+          },
+        },
+      },
+      right: {
+        type: 'Symbol',
+        label: 'A',
+      },
+    })
+
+    expect(expr.reduce(context).toJSON())
+      .toEqual({
+        type: 'Lambda',
+        param: 'y',
+        body: {
+          type: 'Apply',
+          left: {
+            type: 'Symbol',
+            label: 'A',
+          },
+          right: {
+            type: 'Variable',
+            label: 'y',
+          },
+        },
       })
   })
 })
