@@ -560,5 +560,10 @@ describe('ES2015StyleParser', () => {
           },
         })
     })
+
+    test('末尾に消費されない文字が残る場合はエラーになる', () => {
+      expect(() => { parser.parseCommand('Y(x) := x(Y(x)) a b c').toJSON() })
+       .toThrowError()
+    })
   })
 })
