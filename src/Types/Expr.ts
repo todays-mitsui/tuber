@@ -193,7 +193,7 @@ export class Lambda extends Expr {
         try {
             const [[arg], newRoute] = route.popRightTrees(1)
 
-            return new Just(newRoute.reassemble(this.rewrite(this.param, arg)))
+            return new Just(newRoute.reassemble(this.body.rewrite(this.param, arg)))
         } catch (e) {
             return new Fail()
         }

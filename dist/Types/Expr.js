@@ -126,7 +126,7 @@ class Lambda extends Expr {
     tryReduce(context, route) {
         try {
             const [[arg], newRoute] = route.popRightTrees(1);
-            return new Result_1.Just(newRoute.reassemble(this.rewrite(this.param, arg)));
+            return new Result_1.Just(newRoute.reassemble(this.body.rewrite(this.param, arg)));
         }
         catch (e) {
             return new Result_1.Fail();

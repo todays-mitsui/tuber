@@ -1,5 +1,6 @@
 const { Expr } = require('../../dist/Types/Expr')
 const { Context } = require('../../dist/Context')
+
 const exprs = require('./exprs')
 const callables = require('./callables')
 
@@ -158,6 +159,30 @@ describe('Recude', () => {
           type: 'Symbol',
           label: 'y',
         },
+      })
+  })
+
+  test('(x=>x)(:A) -> :A', () => {
+    const expr = Expr.fromJSON({
+      type: 'Apply',
+      left: {
+        type: 'Lambda',
+        param: 'x',
+        body: {
+          type: 'Variable',
+          label: 'x',
+        },
+      },
+      right: {
+        type: 'Symbol',
+        label: 'A',
+      },
+    })
+
+    expect(expr.reduce(context).toJSON())
+      .toEqual({
+        type: 'Symbol',
+        label: 'A',
       })
   })
 })
