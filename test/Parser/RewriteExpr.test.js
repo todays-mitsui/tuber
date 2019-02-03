@@ -1,4 +1,4 @@
-const { Expr } = require('../../dist/Types/Expr')
+const { Apply } = require('../../dist/Types/Expr')
 const exprs = require('./exprs')
 
 describe('Rewrite', () => {
@@ -84,6 +84,44 @@ describe('Rewrite', () => {
           right: {
             type: 'Symbol',
             label: 'C',
+          },
+        },
+      })
+  })
+
+  test('x(x=>x)[x=:A]', () => {
+    expect(new Apply(exprs['x'], exprs['x=>x']).rewrite('x', exprs[':A']).toJSON())
+      .toEqual({
+        type: 'Apply',
+        left: {
+          type: 'Symbol',
+          label: 'A',
+        },
+        right: {
+          type: 'Lambda',
+          param: 'x',
+          body: {
+            type: 'Variable',
+            label: 'x',
+          },
+        },
+      })
+  })
+
+  test('y(x=>y)[y=:B]', () => {
+    expect(new Apply(exprs['y'], exprs['x=>y']).rewrite('y', exprs[':B']).toJSON())
+      .toEqual({
+        type: 'Apply',
+        left: {
+          type: 'Symbol',
+          label: 'B',
+        },
+        right: {
+          type: 'Lambda',
+          param: 'x',
+          body: {
+            type: 'Symbol',
+            label: 'B',
           },
         },
       })
