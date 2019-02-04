@@ -7,8 +7,36 @@ import { Command, EvalCommand, EvalLastCommand, EvalHeadCommand, EvalTailCommand
 import { Callable } from '../Types/Callable';
 
 
+export const CommentParser = P.createLanguage({
+    comment(r): P.Parser<null> {
+        return P.alt(
+            r.singleLineComment,
+            r.multilineComment
+        ).many().then(P.succeed(null))
+    },
+
+    singleLineComment(): P.Parser<null> {
+        return P.seq(
+            P.optWhitespace,
+            P.string('//'),
+            P.regexp(/[^\n\r]*/),
+            P.newline
+        ).then(P.succeed(null))
+    },
+
+    multilineComment(): P.Parser<null> {
+        return P.optWhitespace
+            .then(P.regexp(/\/\*.*?\*\//))
+            .then(P.succeed(null))
+    },
+})
+
 function token (parser: P.Parser<any>): P.Parser<any> {
-    return P.optWhitespace.then(parser).skip(P.optWhitespace)
+    return CommentParser.comment
+        .then(P.optWhitespace)
+        .then(parser)
+        .skip(CommentParser.comment)
+        .skip(P.optWhitespace)
 }
 
 function parens (parser: P.Parser<any>): P.Parser<any> {

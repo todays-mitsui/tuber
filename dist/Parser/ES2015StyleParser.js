@@ -5,8 +5,25 @@ const immutable_1 = require("immutable");
 const Expr_1 = require("../Types/Expr");
 const Command_1 = require("../Types/Command");
 const Callable_1 = require("../Types/Callable");
+exports.CommentParser = P.createLanguage({
+    comment(r) {
+        return P.alt(r.singleLineComment, r.multilineComment).many().then(P.succeed(null));
+    },
+    singleLineComment() {
+        return P.seq(P.optWhitespace, P.string('//'), P.regexp(/[^\n\r]*/), P.newline).then(P.succeed(null));
+    },
+    multilineComment() {
+        return P.optWhitespace
+            .then(P.regexp(/\/\*.*?\*\//))
+            .then(P.succeed(null));
+    },
+});
 function token(parser) {
-    return P.optWhitespace.then(parser).skip(P.optWhitespace);
+    return exports.CommentParser.comment
+        .then(P.optWhitespace)
+        .then(parser)
+        .skip(exports.CommentParser.comment)
+        .skip(P.optWhitespace);
 }
 function parens(parser) {
     return parser.trim(P.optWhitespace)
