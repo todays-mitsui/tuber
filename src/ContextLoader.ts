@@ -1,7 +1,5 @@
 import { Context } from "./Context";
 
-export class ContextLoader {
-    public load(): Context {
-        return undefined as Context
-    }
+export abstract class ContextLoader {
+    abstract load(): Context
 }
