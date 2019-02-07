@@ -1,4 +1,4 @@
-const { Variable, Combinator, Symbl, Lambda, Apply } = require('../../dist/Types/Expr')
+const { Variable, Combinator, Symbl, Lambda, Apply } = require('../dist/Types/Expr')
 
 const exprs = Object.create(null)
 

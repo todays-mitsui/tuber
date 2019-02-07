@@ -1,5 +1,5 @@
-const { Expr } = require('../../dist/Types/Expr')
-const { Callable } = require('../../dist/Types/Callable')
+const { Expr } = require('../dist/Types/Expr')
+const { Callable } = require('../dist/Types/Callable')
 
 
 const callables = Object.create(null)

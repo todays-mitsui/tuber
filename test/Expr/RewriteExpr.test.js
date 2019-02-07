@@ -1,5 +1,5 @@
 const { Apply } = require('../../dist/Types/Expr')
-const exprs = require('./exprs')
+const exprs = require('../exprs')
 
 describe('Rewrite', () => {
   test('x(z)(y(z))[x=:A]', () => {

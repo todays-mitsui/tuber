@@ -1,8 +1,8 @@
 const { Expr } = require('../../dist/Types/Expr')
 const { Context } = require('../../dist/Context')
 
-const exprs = require('./exprs')
-const callables = require('./callables')
+const exprs = require('../exprs')
+const callables = require('../callables')
 
 const context = new Context()
 

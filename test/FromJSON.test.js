@@ -1,4 +1,4 @@
-const { Expr } = require('../../dist/Types/Expr')
+const { Expr } = require('../dist/Types/Expr')
 const exprs = require('./exprs')
 
 describe('FromJSON', () => {

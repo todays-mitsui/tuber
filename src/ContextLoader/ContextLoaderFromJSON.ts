@@ -17,11 +17,11 @@ export class ContextLoaderFromJSON extends ContextLoader {
 
         if (this.context.size > 0) { return this.context }
 
-        this.context = src.context.array.forEach(({ name, params, bareExpr }) => {
+        src.context.forEach(({ name, params, bareExpr }) => {
             const combinator = new Combinator(name)
             const callable = new Callable(params, Expr.fromJSON(bareExpr))
 
-            this.context.update(combinator, callable)
+            this.context = this.context.update(combinator, callable)
         });
 
         return this.context

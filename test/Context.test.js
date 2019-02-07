@@ -1,5 +1,5 @@
-const { Context } = require('../../dist/Context')
-const { Combinator } = require('../../dist/Types/Expr')
+const { Context } = require('../dist/Context')
+const { Combinator } = require('../dist/Types/Expr')
 
 const callables = require('./callables')
 

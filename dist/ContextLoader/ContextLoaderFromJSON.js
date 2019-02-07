@@ -15,10 +15,10 @@ class ContextLoaderFromJSON extends ContextLoader_1.ContextLoader {
         if (this.context.size > 0) {
             return this.context;
         }
-        this.context = src.context.array.forEach(({ name, params, bareExpr }) => {
+        src.context.forEach(({ name, params, bareExpr }) => {
             const combinator = new Expr_1.Combinator(name);
             const callable = new Callable_1.Callable(params, Expr_1.Expr.fromJSON(bareExpr));
-            this.context.update(combinator, callable);
+            this.context = this.context.update(combinator, callable);
         });
         return this.context;
     }
