@@ -1,12 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Calculator {
-    constructor(contextLoader, chunk = 100) {
-        this.contextLoader = contextLoader;
-        this.chunk = chunk;
-        this._context = this.contextLoader.load();
+    constructor(loader, chunkLength = 100) {
+        this.loader = loader;
+        this.chunkLength = chunkLength;
+        this._context = this.loader.load();
     }
-    static traverse() {
+    sequence(expr) {
+        let exprs = [expr];
+        let next = this.next;
+        while (exprs.length < this.chunkLength) {
+            next = expr.reduce(this._context);
+            if (next === null) {
+                break;
+            }
+            exprs.push(next);
+            expr = next;
+        }
+        this.next = next;
+        return [exprs, next];
+    }
+    eval(expr) {
+        const [sequence, next] = this.sequence(expr);
+        return sequence;
     }
     evalLast(expr) {
     }
