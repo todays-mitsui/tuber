@@ -5,10 +5,11 @@ const Context_1 = require("../Context");
 const Expr_1 = require("../Types/Expr");
 const Callable_1 = require("../Types/Callable");
 class FromJSONContextLoader extends ContextLoader_1.ContextLoader {
-    constructor(filepath) {
+    constructor(filepath, basepath) {
         super();
         this.filepath = filepath;
-        this.context = new Context_1.Context;
+        this.basepath = basepath;
+        this.context = new Context_1.Context();
     }
     load() {
         const src = require(this.filepath);

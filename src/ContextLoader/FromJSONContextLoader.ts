@@ -6,10 +6,10 @@ import { Callable } from '../Types/Callable';
 export class FromJSONContextLoader extends ContextLoader {
     private context: Context
 
-    public constructor(readonly filepath: string) {
+    public constructor(readonly filepath: string, readonly basepath: string) {
         super()
 
-        this.context = new Context
+        this.context = new Context()
     }
 
     public load() {
