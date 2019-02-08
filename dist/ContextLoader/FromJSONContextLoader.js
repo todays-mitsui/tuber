@@ -4,7 +4,7 @@ const ContextLoader_1 = require("../ContextLoader");
 const Context_1 = require("../Context");
 const Expr_1 = require("../Types/Expr");
 const Callable_1 = require("../Types/Callable");
-class ContextLoaderFromJSON extends ContextLoader_1.ContextLoader {
+class FromJSONContextLoader extends ContextLoader_1.ContextLoader {
     constructor(filepath) {
         super();
         this.filepath = filepath;
@@ -23,5 +23,5 @@ class ContextLoaderFromJSON extends ContextLoader_1.ContextLoader {
         return this.context;
     }
 }
-exports.ContextLoaderFromJSON = ContextLoaderFromJSON;
-//# sourceMappingURL=ContextLoaderFromJSON.js.map
+exports.FromJSONContextLoader = FromJSONContextLoader;
+//# sourceMappingURL=FromJSONContextLoader.js.map

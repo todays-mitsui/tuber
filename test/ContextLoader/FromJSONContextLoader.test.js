@@ -1,5 +1,5 @@
 const { Context } = require('../../dist/Context')
-const { ContextLoaderFromJSON } = require('../../dist/ContextLoader/ContextLoaderFromJSON')
+const { FromJSONContextLoader } = require('../../dist/ContextLoader/FromJSONContextLoader')
 const { Combinator } = require('../../dist/Types/Expr')
 
 const callables = require('../callables')
@@ -9,11 +9,12 @@ combinators['s'] = new Combinator('s')
 combinators['k'] = new Combinator('k')
 combinators['i'] = new Combinator('i')
 combinators['Y'] = new Combinator('Y')
+combinators['foobar'] = new Combinator('foobar')
 
-describe('ContextLoaderFromJSON', () => {
+describe('FromJSONContextLoader', () => {
   test('ContextLoader は Context を返す', () => {
     const filepath = '../../assets/DefaultContext.json'
-    const loader = new ContextLoaderFromJSON(filepath)
+    const loader = new FromJSONContextLoader(filepath)
     const context = loader.load()
 
     expect(context).toBeInstanceOf(Context)
@@ -21,7 +22,7 @@ describe('ContextLoaderFromJSON', () => {
 
   test('DefaultContext から s, k, i を読み出す', () => {
     const filepath = '../../assets/DefaultContext.json'
-    const loader = new ContextLoaderFromJSON(filepath)
+    const loader = new FromJSONContextLoader(filepath)
     const context = loader.load()
 
     expect(context.has(combinators['s']))
@@ -38,5 +39,8 @@ describe('ContextLoaderFromJSON', () => {
       .toBeTruthy()
     expect(context.get(combinators['i']))
       .toEqual(callables['i'])
+
+    expect(context.has(combinators['foobar']))
+      .toBeFalsy()
   })
 })

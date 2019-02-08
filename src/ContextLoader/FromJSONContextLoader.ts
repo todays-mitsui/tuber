@@ -3,7 +3,7 @@ import { Context } from '../Context';
 import { Combinator, Expr } from '../Types/Expr';
 import { Callable } from '../Types/Callable';
 
-export class ContextLoaderFromJSON extends ContextLoader {
+export class FromJSONContextLoader extends ContextLoader {
     private context: Context
 
     public constructor(readonly filepath: string) {
