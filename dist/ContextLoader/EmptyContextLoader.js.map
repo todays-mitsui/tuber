@@ -1,0 +1,1 @@
+{"version":3,"file":"EmptyContextLoader.js","sourceRoot":"","sources":["../../src/ContextLoader/EmptyContextLoader.ts"],"names":[],"mappings":";;AAAA,oDAAgD;AAChD,wCAAoC;AAEpC,MAAa,kBAAmB,SAAQ,6BAAa;IAGjD;QACI,KAAK,EAAE,CAAA;QAEP,IAAI,CAAC,QAAQ,GAAG,IAAI,iBAAO,EAAE,CAAA;IACjC,CAAC;IAEM,IAAI;QACP,OAAO,IAAI,CAAC,QAAQ,CAAA;IACxB,CAAC;CACJ;AAZD,gDAYC"}
