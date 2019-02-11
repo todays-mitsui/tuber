@@ -34,8 +34,9 @@ describe('Calculator', () => {
     const f = new Lambda('x', app(x, x))
     const ff = app(f, f)
 
-    expect(calculator.eval(ff))
-      .toHaveLength(100)
+    expect(calculator.next).toBeNull()
+    expect(calculator.eval(ff)).toHaveLength(100)
+    expect(calculator.next).not.toBeNull()
   })
 
   test('停止しない簡約のβ簡約列の長さは chunk よって指定できる', () => {
@@ -48,7 +49,8 @@ describe('Calculator', () => {
     const f = new Lambda('x', app(x, x))
     const ff = app(f, f)
 
-    expect(calculator.eval(ff))
-      .toHaveLength(chunk)
+    expect(calculator.next).toBeNull()
+    expect(calculator.eval(ff)).toHaveLength(chunk)
+    expect(calculator.next).not.toBeNull()
   })
 })
