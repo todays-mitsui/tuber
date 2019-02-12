@@ -1,11 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const Expr_1 = require("./Types/Expr");
 const ApplicationError_1 = require("./Error/ApplicationError");
 class Calculator {
     constructor(loader, chunkLength = 100) {
         this.loader = loader;
         this.chunkLength = chunkLength;
         this._context = this.loader.load();
+        this._history = [];
         this._next = null;
     }
     eval(expr) {
@@ -17,6 +19,7 @@ class Calculator {
             expr = this._next;
         }
         const [sequence, next] = this.sequence(expr);
+        this._history.push([expr, sequence]);
         return sequence;
     }
     sequence(expr) {
@@ -33,11 +36,20 @@ class Calculator {
         this._next = next;
         return [exprs, next];
     }
-    info(combinator) {
+    def(identifier, callable) {
+        const combinator = new Expr_1.Combinator(identifier);
+        this._context.update(combinator, callable);
+        return this;
+    }
+    info(identifier) {
+        const combinator = new Expr_1.Combinator(identifier);
         return this._context.get(combinator);
     }
     get context() {
         return this._context.entories;
+    }
+    get history() {
+        return this._history;
     }
     get next() {
         return this._next;

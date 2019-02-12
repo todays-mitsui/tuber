@@ -22,6 +22,9 @@ class EvalCommand extends Command {
     map(callbackfn) {
         return new EvalCommand(callbackfn(this.expr));
     }
+    get action() {
+        return Action.Eval;
+    }
     toJSON() {
         return {
             action: Action.Eval,
@@ -37,6 +40,9 @@ class EvalLastCommand extends Command {
     }
     map(callbackfn) {
         return new EvalLastCommand(callbackfn(this.expr));
+    }
+    get action() {
+        return Action.EvalLast;
     }
     toJSON() {
         return {
@@ -54,6 +60,9 @@ class EvalHeadCommand extends Command {
     }
     map(callbackfn) {
         return new EvalHeadCommand(callbackfn(this.expr), this.maxLength);
+    }
+    get action() {
+        return Action.EvalHead;
     }
     toJSON() {
         return {
@@ -73,6 +82,9 @@ class EvalTailCommand extends Command {
     map(callbackfn) {
         return new EvalTailCommand(callbackfn(this.expr), this.maxLength);
     }
+    get action() {
+        return Action.EvalTail;
+    }
     toJSON() {
         return {
             action: Action.EvalTail,
@@ -90,6 +102,9 @@ class AddCommand extends Command {
     }
     map(callbackfn) {
         return new AddCommand(this.identifier, callbackfn(this.callable));
+    }
+    get action() {
+        return Action.Add;
     }
     toJSON() {
         return {
@@ -109,6 +124,9 @@ class UpdateCommand extends Command {
     map(callbackfn) {
         return new UpdateCommand(this.identifier, callbackfn(this.callable));
     }
+    get action() {
+        return Action.Update;
+    }
     toJSON() {
         return {
             action: Action.Update,
@@ -123,6 +141,9 @@ class InfoCommand extends Command {
         super();
         this.identifier = identifier;
     }
+    get action() {
+        return Action.Info;
+    }
     toJSON() {
         return {
             action: Action.Info,
@@ -134,6 +155,9 @@ exports.InfoCommand = InfoCommand;
 class ContextCommand extends Command {
     constructor() {
         super();
+    }
+    get action() {
+        return Action.Context;
     }
     toJSON() {
         return {

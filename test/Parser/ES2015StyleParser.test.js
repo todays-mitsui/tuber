@@ -533,7 +533,11 @@ describe('ES2015StyleParser', () => {
 
   describe('parseCommand', () => {
     test('自由変数と束縛変数の混ざった関数定義', () => {
-      expect(parser.parseCommand('Y(x) := x(Y(x))').toJSON())
+      const command = parser.parseCommand('Y(x) := x(Y(x))')
+
+      expect(command.action).toBe('Add')
+
+      expect(command.toJSON())
         .toEqual({
           action: 'Add',
           identifier: 'Y',
