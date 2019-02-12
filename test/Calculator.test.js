@@ -22,8 +22,10 @@ describe('Calculator', () => {
     const skkA = app(skk, A)
     const kAkA = app(app(k, A), app(k, A))
 
-    expect(calculator.eval(skkA))
-      .toEqual([skkA, kAkA, A])
+    const { sequence, step, done } = calculator.eval(skkA)
+
+    expect(sequence).toEqual([skkA, kAkA, A])
+    expect(done).toBeTruthy()
   })
 
   test('(x=>(x(x)))(x=>(x(x))) は停止しないためβ簡約列は打ち切られる', () => {
@@ -35,7 +37,12 @@ describe('Calculator', () => {
     const ff = app(f, f)
 
     expect(calculator.next).toBeNull()
-    expect(calculator.eval(ff)).toHaveLength(100)
+
+    const { sequence, step, done } = calculator.eval(ff)
+
+    expect(sequence).toHaveLength(100)
+    expect(done).toBeFalsy()
+
     expect(calculator.next).not.toBeNull()
   })
 
@@ -49,8 +56,9 @@ describe('Calculator', () => {
     const f = new Lambda('x', app(x, x))
     const ff = app(f, f)
 
-    expect(calculator.next).toBeNull()
-    expect(calculator.eval(ff)).toHaveLength(chunk)
-    expect(calculator.next).not.toBeNull()
+    const { sequence, step, done } = calculator.eval(ff)
+
+    expect(sequence).toHaveLength(chunk)
+    expect(done).toBeFalsy()
   })
 })

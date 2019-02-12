@@ -20,7 +20,11 @@ class Calculator {
         }
         const [sequence, next] = this.sequence(expr);
         this._history.push([expr, sequence]);
-        return sequence;
+        return {
+            sequence,
+            step: sequence.length - 1,
+            done: next === null,
+        };
     }
     sequence(expr) {
         let exprs = [expr];

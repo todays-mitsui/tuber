@@ -28,7 +28,11 @@ export class Calculator {
 
         this._history.push([expr, sequence])
 
-        return sequence
+        return {
+            sequence,
+            step: sequence.length - 1,
+            done: next === null,
+        }
     }
 
     private sequence(expr: Expr): [Expr[], Expr] {
