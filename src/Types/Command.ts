@@ -16,6 +16,7 @@ export namespace Action {
 }
 
 export abstract class Command implements ToJSON {
+    abstract get action(): Action
     abstract toJSON(): Object
 }
 
@@ -26,6 +27,10 @@ export class EvalCommand extends Command {
 
     public map(callbackfn: (expr: Expr) => Expr) {
         return new EvalCommand(callbackfn(this.expr))
+    }
+
+    get action() {
+        return Action.Eval
     }
 
     public toJSON() {
@@ -45,6 +50,10 @@ export class EvalLastCommand extends Command {
         return new EvalLastCommand(callbackfn(this.expr))
     }
 
+    get action() {
+        return Action.EvalLast
+    }
+
     public toJSON() {
         return {
             action: Action.EvalLast,
@@ -60,6 +69,10 @@ export class EvalHeadCommand extends Command {
 
     public map(callbackfn: (expr: Expr) => Expr) {
         return new EvalHeadCommand(callbackfn(this.expr), this.maxLength)
+    }
+
+    get action() {
+        return Action.EvalHead
     }
 
     public toJSON() {
@@ -80,6 +93,10 @@ export class EvalTailCommand extends Command {
         return new EvalTailCommand(callbackfn(this.expr), this.maxLength)
     }
 
+    get action() {
+        return Action.EvalTail
+    }
+
     public toJSON() {
         return {
             action: Action.EvalTail,
@@ -96,6 +113,10 @@ export class AddCommand extends Command {
 
     public map(callbackfn: (callable: Callable) => Callable) {
         return new AddCommand(this.identifier, callbackfn(this.callable))
+    }
+
+    get action() {
+        return Action.Add
     }
 
     public toJSON() {
@@ -116,6 +137,10 @@ export class UpdateCommand extends Command {
         return new UpdateCommand(this.identifier, callbackfn(this.callable))
     }
 
+    get action() {
+        return Action.Update
+    }
+
     public toJSON() {
         return {
             action: Action.Update,
@@ -130,6 +155,10 @@ export class InfoCommand extends Command {
         super()
     }
 
+    get action() {
+        return Action.Info
+    }
+
     public toJSON() {
         return {
             action: Action.Info,
@@ -141,6 +170,10 @@ export class InfoCommand extends Command {
 export class ContextCommand extends Command {
     public constructor() {
         super()
+    }
+
+    get action() {
+        return Action.Context
     }
 
     public toJSON() {
