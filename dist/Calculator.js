@@ -7,7 +7,6 @@ class Calculator {
         this.loader = loader;
         this.chunkLength = chunkLength;
         this._context = this.loader.load();
-        this._history = [];
         this._next = null;
     }
     eval(expr) {
@@ -19,7 +18,6 @@ class Calculator {
             expr = this._next;
         }
         const [sequence, next] = this.sequence(expr);
-        this._history.push([expr, sequence]);
         return {
             sequence,
             step: sequence.length - 1,
@@ -51,9 +49,6 @@ class Calculator {
     }
     get context() {
         return this._context.entories;
-    }
-    get history() {
-        return this._history;
     }
     get next() {
         return this._next;

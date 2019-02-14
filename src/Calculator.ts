@@ -7,12 +7,10 @@ import { ApplicationError } from './Error/ApplicationError'
 
 export class Calculator {
     private _context: Context
-    private _history: [Expr, Expr[]][]
     private _next: Expr
 
     constructor(private loader: ContextLoader, public chunkLength = 100) {
         this._context = this.loader.load()
-        this._history = []
         this._next = null
     }
 
@@ -25,8 +23,6 @@ export class Calculator {
         }
 
         const [sequence, next] = this.sequence(expr)
-
-        this._history.push([expr, sequence])
 
         return {
             sequence,
@@ -69,10 +65,6 @@ export class Calculator {
 
     get context() {
         return this._context.entories
-    }
-
-    get history() {
-        return this._history
     }
 
     get next(): Expr {
