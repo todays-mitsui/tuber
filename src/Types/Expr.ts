@@ -163,10 +163,6 @@ export class Symbl extends Expr {
         return new Fail()
     }
 
-    public invoke(context: Context, args: Expr[]): Expr {
-        throw new ApplicationError('Unable to invoke')
-    }
-
     public rewrite(identifier: Identifier, expr: Expr): Symbl {
         return this
     }
@@ -245,7 +241,7 @@ export class Apply extends Expr {
     public tryReduce(context: Context, route: Route): Result {
         return new Try([
             [this.left , route.goLeft(this.right)],
-            [this.right, route.goLeft(this.left)],
+            [this.right, route.goRight(this.left)],
         ])
     }
 

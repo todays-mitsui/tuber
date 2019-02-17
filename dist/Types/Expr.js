@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = require("../Route");
 const Result_1 = require("../Result");
 const immutable_1 = require("immutable");
-const ApplicationError_1 = require("../Error/ApplicationError");
 var ExprType;
 (function (ExprType) {
     ExprType.Variable = 'Variable';
@@ -100,9 +99,6 @@ class Symbl extends Expr {
     tryReduce(context, route) {
         return new Result_1.Fail();
     }
-    invoke(context, args) {
-        throw new ApplicationError_1.ApplicationError('Unable to invoke');
-    }
     rewrite(identifier, expr) {
         return this;
     }
@@ -171,7 +167,7 @@ class Apply extends Expr {
     tryReduce(context, route) {
         return new Result_1.Try([
             [this.left, route.goLeft(this.right)],
-            [this.right, route.goLeft(this.left)],
+            [this.right, route.goRight(this.left)],
         ]);
     }
     rewrite(identifier, expr) {
