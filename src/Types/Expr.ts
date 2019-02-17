@@ -16,7 +16,7 @@ export namespace ExprType {
 }
 
 
-type ExprJSON = VariableJSON | CombinatorJSON | SymblJSON | LambdaJSON | ApplyJSON
+export type ExprJSON = VariableJSON | CombinatorJSON | SymblJSON | LambdaJSON | ApplyJSON
 
 export interface VariableJSON {
     type: 'Variable',

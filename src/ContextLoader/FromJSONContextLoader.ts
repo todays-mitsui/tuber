@@ -1,29 +1,42 @@
 import { ContextLoader } from '../ContextLoader'
-import { Context } from '../Context';
-import { Combinator, Expr } from '../Types/Expr';
-import { Callable } from '../Types/Callable';
+import { Context } from '../Context'
+import { Combinator, Expr, Identifier, ExprJSON } from '../Types/Expr'
+import { Callable } from '../Types/Callable'
+import { ApplicationError } from '../Error/ApplicationError'
+
+interface ContextArchive {
+    version: string
+    context: {
+        name: Identifier
+        params: Identifier[]
+        bareExpr: ExprJSON
+    }[]
+}
 
 export class FromJSONContextLoader extends ContextLoader {
+    private src: ContextArchive
     private context: Context
 
-    public constructor(readonly filepath: string, readonly basepath: string) {
+    public constructor(readonly json: ContextArchive, readonly basepath: string) {
         super()
 
-        this.context = new Context()
+        this.src = json
     }
 
     public load() {
-        const src = require(this.filepath)
+        if (this.src.version !== '1.0') {
+            throw new ApplicationError('不明なバージョンです')
+        }
 
-        if (this.context.size > 0) { return this.context }
+        let context = new Context()
 
-        src.context.forEach(({ name, params, bareExpr }) => {
+        this.src.context.forEach(({ name, params, bareExpr }) => {
             const combinator = new Combinator(name)
             const callable = new Callable(params, Expr.fromJSON(bareExpr))
 
-            this.context = this.context.update(combinator, callable)
+            context = context.update(combinator, callable)
         });
 
-        return this.context
+        return context
     }
 }

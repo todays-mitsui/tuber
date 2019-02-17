@@ -9,8 +9,8 @@ const app = (left, right) => ( new Apply(left, right) )
 
 describe('Calculator', () => {
   test('s(k, k)(:A) -> :A', () => {
-    const filepath = '../../assets/DefaultContext.json'
-    const loader = new FromJSONContextLoader(filepath)
+    const json = require('../assets/DefaultContext.json')
+    const loader = new FromJSONContextLoader(json)
 
     const calculator = new Calculator(loader)
 

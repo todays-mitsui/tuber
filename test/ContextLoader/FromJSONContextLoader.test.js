@@ -13,16 +13,16 @@ combinators['foobar'] = new Combinator('foobar')
 
 describe('FromJSONContextLoader', () => {
   test('ContextLoader は Context を返す', () => {
-    const filepath = '../../assets/DefaultContext.json'
-    const loader = new FromJSONContextLoader(filepath)
+    const json = require('../../assets/DefaultContext.json')
+    const loader = new FromJSONContextLoader(json)
     const context = loader.load()
 
     expect(context).toBeInstanceOf(Context)
   })
 
   test('DefaultContext から s, k, i を読み出す', () => {
-    const filepath = '../../assets/DefaultContext.json'
-    const loader = new FromJSONContextLoader(filepath)
+    const json = require('../../assets/DefaultContext.json')
+    const loader = new FromJSONContextLoader(json)
     const context = loader.load()
 
     expect(context.has(combinators['s']))

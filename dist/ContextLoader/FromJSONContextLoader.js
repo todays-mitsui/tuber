@@ -4,24 +4,25 @@ const ContextLoader_1 = require("../ContextLoader");
 const Context_1 = require("../Context");
 const Expr_1 = require("../Types/Expr");
 const Callable_1 = require("../Types/Callable");
+const ApplicationError_1 = require("../Error/ApplicationError");
 class FromJSONContextLoader extends ContextLoader_1.ContextLoader {
-    constructor(filepath, basepath) {
+    constructor(json, basepath) {
         super();
-        this.filepath = filepath;
+        this.json = json;
         this.basepath = basepath;
-        this.context = new Context_1.Context();
+        this.src = json;
     }
     load() {
-        const src = require(this.filepath);
-        if (this.context.size > 0) {
-            return this.context;
+        if (this.src.version !== '1.0') {
+            throw new ApplicationError_1.ApplicationError('不明なバージョンです');
         }
-        src.context.forEach(({ name, params, bareExpr }) => {
+        let context = new Context_1.Context();
+        this.src.context.forEach(({ name, params, bareExpr }) => {
             const combinator = new Expr_1.Combinator(name);
             const callable = new Callable_1.Callable(params, Expr_1.Expr.fromJSON(bareExpr));
-            this.context = this.context.update(combinator, callable);
+            context = context.update(combinator, callable);
         });
-        return this.context;
+        return context;
     }
 }
 exports.FromJSONContextLoader = FromJSONContextLoader;
