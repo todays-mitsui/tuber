@@ -48,7 +48,9 @@ class Calculator {
         return this._context.get(combinator);
     }
     get context() {
-        return this._context.entories;
+        return this._context
+            .entories
+            .map(([name, body]) => ([name, body.toJSON()]));
     }
     get next() {
         return this._next;

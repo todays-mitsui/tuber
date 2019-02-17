@@ -64,7 +64,9 @@ export class Calculator {
     }
 
     get context() {
-        return this._context.entories
+        return this._context
+            .entories
+            .map(([name, body]): [Identifier, Object] => ([name, body.toJSON()]))
     }
 
     get next(): Expr {
