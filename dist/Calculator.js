@@ -43,6 +43,11 @@ class Calculator {
         this._context.update(combinator, callable);
         return this;
     }
+    del(identifier) {
+        const combinator = new Expr_1.Combinator(identifier);
+        this._context.del(combinator);
+        return this;
+    }
     info(identifier) {
         const combinator = new Expr_1.Combinator(identifier);
         return this._context.get(combinator);

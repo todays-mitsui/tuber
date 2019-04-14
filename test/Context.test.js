@@ -78,4 +78,23 @@ describe('Context', () => {
     expect(context.get(combinators['Y']))
       .toBeNull()
   })
+
+  test('追加済みの関数定義を削除できる', () => {
+    const context = new Context()
+
+    context
+      .add(combinators['s'], callables['s'])
+      .add(combinators['k'], callables['k'])
+      .add(combinators['i'], callables['i'])
+
+    expect(context.has(combinators['s'])).toBeTruthy()
+    expect(context.has(combinators['k'])).toBeTruthy()
+    expect(context.has(combinators['i'])).toBeTruthy()
+
+    context.del(combinators['k'])
+
+    expect(context.has(combinators['s'])).toBeTruthy()
+    expect(context.has(combinators['k'])).toBeFalsy()
+    expect(context.has(combinators['i'])).toBeTruthy()
+  })
 })
