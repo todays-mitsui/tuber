@@ -3,9 +3,19 @@ import { Set } from 'immutable'
 
 import { Parser } from '../Types/Parser'
 import { Identifier, Expr, Variable, Combinator, Symbl, Lambda, Apply } from '../Types/Expr'
-import { Command, EvalCommand, EvalLastCommand, EvalHeadCommand, EvalTailCommand, AddCommand, UpdateCommand, InfoCommand, ContextCommand } from '../Types/Command';
+import {
+    Command,
+    EvalCommand,
+    EvalLastCommand,
+    EvalHeadCommand,
+    EvalTailCommand,
+    AddCommand,
+    UpdateCommand,
+    DeleteCommand,
+    InfoCommand,
+    ContextCommand,
+} from '../Types/Command';
 import { Callable } from '../Types/Callable';
-
 
 export const CommentParser = P.createLanguage({
     comment(r): P.Parser<null> {
@@ -143,6 +153,7 @@ export const ExprParser = P.createLanguage({
 export const CommandParser = P.createLanguage({
     command(r): P.Parser<Command> {
         return P.alt(
+            r.del,
             r.add,
             r.update,
             r.eval,
@@ -233,6 +244,17 @@ export const CommandParser = P.createLanguage({
                 )
             )
         )
+    },
+
+    del() {
+        return token(ExprParser.identifier)
+            .chain((identifier) => P.seqMap(
+                token(P.string('=')),
+                P.string(identifier),
+                (_1, _2) => (
+                    new DeleteCommand(identifier)
+                )
+            ))
     },
 
     // 関数定義の左辺値

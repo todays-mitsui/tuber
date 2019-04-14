@@ -8,6 +8,7 @@ var Action;
     Action.EvalTail = 'EvalTail';
     Action.Add = 'Add';
     Action.Update = 'Update';
+    Action.Delete = 'Delete';
     Action.Info = 'Info';
     Action.Context = 'Context';
 })(Action = exports.Action || (exports.Action = {}));
@@ -136,6 +137,22 @@ class UpdateCommand extends Command {
     }
 }
 exports.UpdateCommand = UpdateCommand;
+class DeleteCommand extends Command {
+    constructor(identifier) {
+        super();
+        this.identifier = identifier;
+    }
+    get action() {
+        return Action.Delete;
+    }
+    toJSON() {
+        return {
+            action: Action.Delete,
+            identifier: this.identifier,
+        };
+    }
+}
+exports.DeleteCommand = DeleteCommand;
 class InfoCommand extends Command {
     constructor(identifier) {
         super();

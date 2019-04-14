@@ -84,7 +84,7 @@ exports.ExprParser = P.createLanguage({
 });
 exports.CommandParser = P.createLanguage({
     command(r) {
-        return P.alt(r.add, r.update, r.eval, r.evalLast, r.evalHead, r.evalTail, r.info, r.context);
+        return P.alt(r.del, r.add, r.update, r.eval, r.evalLast, r.evalHead, r.evalTail, r.info, r.context);
     },
     // β変換列を表示
     eval() {
@@ -115,6 +115,10 @@ exports.CommandParser = P.createLanguage({
     // 関数定義(定義済み関数の上書きを許す)
     update(r) {
         return P.seqMap(token(r.lvalue), token(P.string('=')), token(exports.ExprParser.expr), ([funcName, params], _, bareExpr) => (new Command_1.UpdateCommand(funcName, new Callable_1.Callable(params, bareExpr))));
+    },
+    del() {
+        return token(exports.ExprParser.identifier)
+            .chain((identifier) => P.seqMap(token(P.string('=')), P.string(identifier), (_1, _2) => (new Command_1.DeleteCommand(identifier))));
     },
     // 関数定義の左辺値
     lvalue() {

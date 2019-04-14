@@ -2,7 +2,7 @@ import { Expr, Identifier } from "./Expr";
 import { Callable } from "./Callable";
 import { ToJSON } from "../Interface/ToJSON";
 
-export type Action = 'Eval' | 'EvalLast' | 'EvalHead' | 'EvalTail' | 'Add' | 'Update' | 'Info' | 'Context'
+export type Action = 'Eval' | 'EvalLast' | 'EvalHead' | 'EvalTail' | 'Add' | 'Update' | 'Delete' | 'Info' | 'Context'
 
 export namespace Action {
     export const Eval    : Action = 'Eval'
@@ -11,6 +11,7 @@ export namespace Action {
     export const EvalTail: Action = 'EvalTail'
     export const Add     : Action = 'Add'
     export const Update  : Action = 'Update'
+    export const Delete  : Action = 'Delete'
     export const Info    : Action = 'Info'
     export const Context : Action = 'Context'
 }
@@ -146,6 +147,23 @@ export class UpdateCommand extends Command {
             action: Action.Update,
             identifier: this.identifier,
             callable: this.callable.toJSON(),
+        }
+    }
+}
+
+export class DeleteCommand extends Command {
+    public constructor(readonly identifier: Identifier) {
+        super()
+    }
+
+    get action() {
+        return Action.Delete
+    }
+
+    public toJSON() {
+        return {
+            action: Action.Delete,
+            identifier: this.identifier,
         }
     }
 }

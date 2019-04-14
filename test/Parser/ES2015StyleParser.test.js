@@ -499,6 +499,17 @@ describe('ES2015StyleCommandParser', () => {
           },
         })
     })
+
+    test('定義済み関数の削除', () => {
+      expect(() => { CommandParser.del.tryParse('x=y') })
+        .toThrowError()
+
+      expect(CommandParser.del.tryParse('x=x').toJSON())
+        .toEqual({
+          action: 'Delete',
+          identifier: 'x',
+        })
+    })
   })
 })
 
@@ -562,6 +573,14 @@ describe('ES2015StyleParser', () => {
               }
             }
           },
+        })
+    })
+
+    test('定義済み関数の削除', () => {
+      expect(parser.parseCommand('x=x').toJSON())
+        .toEqual({
+          action: 'Delete',
+          identifier: 'x',
         })
     })
 
