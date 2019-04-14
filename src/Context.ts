@@ -27,6 +27,12 @@ export class Context {
         return this
     }
 
+    public del(combinator: Combinator) {
+        this.map = this.map.delete(combinator.label)
+
+        return this
+    }
+
     public has(combinator: Combinator) {
         return this.map.has(combinator.label)
     }

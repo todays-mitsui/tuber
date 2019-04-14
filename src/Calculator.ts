@@ -57,6 +57,14 @@ export class Calculator {
         return this
     }
 
+    public del(identifier: Identifier) {
+        const combinator = new Combinator(identifier)
+
+        this._context.del(combinator)
+
+        return this
+    }
+
     public info(identifier: Identifier) {
         const combinator = new Combinator(identifier)
 

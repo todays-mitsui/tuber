@@ -17,6 +17,10 @@ class Context {
         this.map = this.map.set(combinator.label, callable);
         return this;
     }
+    del(combinator) {
+        this.map = this.map.delete(combinator.label);
+        return this;
+    }
     has(combinator) {
         return this.map.has(combinator.label);
     }
