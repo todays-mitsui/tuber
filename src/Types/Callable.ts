@@ -1,4 +1,4 @@
-import { Identifier, Expr, Lambda } from "./Expr";
+import { Identifier, Expr, Lambda, ExprJSON } from "./Expr";
 import { ToJSON } from "../Interface/ToJSON";
 
 export class Callable implements ToJSON {
@@ -31,7 +31,7 @@ export class Callable implements ToJSON {
         return body;
     }
 
-    public toJSON() {
+    public toJSON(): { params: Identifier[], bareExpr: ExprJSON } {
         return {
             params: this.params,
             bareExpr: this.bareExpr.toJSON(),

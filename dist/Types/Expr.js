@@ -3,14 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = require("../Route");
 const Result_1 = require("../Result");
 const immutable_1 = require("immutable");
-var ExprType;
-(function (ExprType) {
-    ExprType.Variable = 'Variable';
-    ExprType.Combinator = 'Combinator';
-    ExprType.Symbol = 'Symbol';
-    ExprType.Lambda = 'Lambda';
-    ExprType.Apply = 'Apply';
-})(ExprType = exports.ExprType || (exports.ExprType = {}));
 class Expr {
     static fromJSON(json) {
         switch (json.type) {
@@ -49,7 +41,7 @@ class Variable extends Expr {
     }
     toJSON() {
         return {
-            type: ExprType.Variable,
+            type: 'Variable',
             label: this.label,
         };
     }
@@ -82,7 +74,7 @@ class Combinator extends Expr {
     }
     toJSON() {
         return {
-            type: ExprType.Combinator,
+            type: 'Combinator',
             label: this.label,
         };
     }
@@ -104,7 +96,7 @@ class Symbl extends Expr {
     }
     toJSON() {
         return {
-            type: ExprType.Symbol,
+            type: 'Symbol',
             label: this.label,
         };
     }
@@ -136,7 +128,7 @@ class Lambda extends Expr {
     }
     toJSON() {
         return {
-            type: ExprType.Lambda,
+            type: 'Lambda',
             param: this.param,
             body: this.body.toJSON(),
         };
@@ -175,7 +167,7 @@ class Apply extends Expr {
     }
     toJSON() {
         return {
-            type: ExprType.Apply,
+            type: 'Apply',
             left: this.left.toJSON(),
             right: this.right.toJSON(),
         };

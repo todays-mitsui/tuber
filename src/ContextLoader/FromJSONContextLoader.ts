@@ -3,15 +3,8 @@ import { Context } from '../Context'
 import { Combinator, Expr, Identifier, ExprJSON } from '../Types/Expr'
 import { Callable } from '../Types/Callable'
 import { ApplicationError } from '../Error/ApplicationError'
+import { ContextArchive } from '../Types/ContextArchive';
 
-interface ContextArchive {
-    version: string
-    context: {
-        name: Identifier
-        params: Identifier[]
-        bareExpr: ExprJSON
-    }[]
-}
 
 export class FromJSONContextLoader extends ContextLoader {
     private src: ContextArchive

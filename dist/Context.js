@@ -36,6 +36,13 @@ class Context {
     get entories() {
         return this.map.toArray();
     }
+    dump() {
+        const context = this.map.toArray().map(([label, callable]) => (Object.assign({ name: label }, callable.toJSON())));
+        return {
+            version: '1.0',
+            context: context,
+        };
+    }
 }
 exports.Context = Context;
 //# sourceMappingURL=Context.js.map

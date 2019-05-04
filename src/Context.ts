@@ -1,8 +1,9 @@
-import { OrderedMap } from 'immutable'
+import { OrderedMap, List } from 'immutable'
 
 import { Identifier, Combinator } from './Types/Expr';
 import { Callable } from './Types/Callable';
 import { ApplicationError } from './Error/ApplicationError';
+import { ContextArchive, ContextArchiveItem } from './Types/ContextArchive';
 
 export class Context {
     private map:OrderedMap<Identifier, Callable>
@@ -49,5 +50,17 @@ export class Context {
 
     get entories(): [Identifier, Callable][] {
         return this.map.toArray()
+    }
+
+    public dump(): ContextArchive {
+        const context = this.map.toArray().map(([label, callable]) => ({
+            name: label,
+            ...callable.toJSON(),
+        }))
+
+        return {
+            version: '1.0',
+            context: context,
+        }
     }
 }

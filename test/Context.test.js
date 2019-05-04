@@ -97,4 +97,64 @@ describe('Context', () => {
     expect(context.has(combinators['k'])).toBeFalsy()
     expect(context.has(combinators['i'])).toBeTruthy()
   })
+
+  test('dump', () => {
+    const context = new Context()
+
+    context
+      .add(combinators['s'], callables['s'])
+      .add(combinators['k'], callables['k'])
+      .add(combinators['i'], callables['i'])
+
+    expect(context.dump()).toEqual({
+      version: '1.0',
+      context: [
+        {
+          name: 's',
+          params: ['x', 'y', 'z'],
+          bareExpr: {
+            type: 'Apply',
+            left: {
+              type: 'Apply',
+              left: {
+                type: 'Variable',
+                label: 'x',
+              },
+              right: {
+                type: 'Variable',
+                label: 'z',
+              },
+            },
+            right: {
+              type: 'Apply',
+              left: {
+                type: 'Variable',
+                label: 'y',
+              },
+              right: {
+                type: 'Variable',
+                label: 'z',
+              },
+            },
+          },
+        },
+        {
+          name: 'k',
+          params: ['x', 'y'],
+          bareExpr: {
+            type: 'Variable',
+            label: 'x',
+          },
+        },
+        {
+          name: 'i',
+          params: ['x'],
+          bareExpr: {
+            type: 'Variable',
+            label: 'x',
+          },
+        },
+      ],
+    })
+  })
 })

@@ -7,13 +7,6 @@ import { ApplicationError } from "../Error/ApplicationError";
 
 
 export type ExprType = 'Variable' | 'Combinator' | 'Symbol' | 'Lambda' | 'Apply'
-export namespace ExprType {
-    export const Variable  : ExprType = 'Variable'
-    export const Combinator: ExprType = 'Combinator'
-    export const Symbol    : ExprType = 'Symbol'
-    export const Lambda    : ExprType = 'Lambda'
-    export const Apply     : ExprType = 'Apply'
-}
 
 
 export type ExprJSON = VariableJSON | CombinatorJSON | SymblJSON | LambdaJSON | ApplyJSON
@@ -81,7 +74,7 @@ export abstract class Expr implements ToJSON {
         }
     }
 
-    abstract toJSON(): Object
+    abstract toJSON(): ExprJSON
 }
 
 export type Identifier = string
@@ -104,9 +97,9 @@ export class Variable extends Expr {
         return this.label === identifier ? expr : this
     }
 
-    public toJSON() {
+    public toJSON(): VariableJSON {
         return {
-            type: ExprType.Variable,
+            type: 'Variable',
             label: this.label,
         }
     }
@@ -141,9 +134,9 @@ export class Combinator extends Expr {
         return this
     }
 
-    public toJSON() {
+    public toJSON(): CombinatorJSON {
         return {
-            type: ExprType.Combinator,
+            type: 'Combinator',
             label: this.label,
         }
     }
@@ -167,9 +160,9 @@ export class Symbl extends Expr {
         return this
     }
 
-    public toJSON() {
+    public toJSON(): SymblJSON {
         return {
-            type: ExprType.Symbol,
+            type: 'Symbol',
             label: this.label,
         }
     }
@@ -201,9 +194,9 @@ export class Lambda extends Expr {
         return new Lambda(this.param, this.body.rewrite(identifier, expr))
     }
 
-    public toJSON() {
+    public toJSON(): LambdaJSON {
         return {
-            type: ExprType.Lambda,
+            type: 'Lambda',
             param: this.param,
             body: this.body.toJSON(),
         }
@@ -252,9 +245,9 @@ export class Apply extends Expr {
         )
     }
 
-    public toJSON() {
+    public toJSON(): ApplyJSON {
         return {
-            type: ExprType.Apply,
+            type: 'Apply',
             left: this.left.toJSON(),
             right: this.right.toJSON(),
         }
