@@ -3,6 +3,7 @@ import { Expr, Combinator, Identifier } from './Types/Expr'
 import { Context } from './Context'
 import { Callable } from './Types/Callable'
 import { ApplicationError } from './Error/ApplicationError'
+import { ContextArchive } from './Types/ContextArchive';
 
 
 export class Calculator {
@@ -79,5 +80,9 @@ export class Calculator {
 
     get next(): Expr {
         return this._next;
+    }
+
+    public dumpContext(): ContextArchive {
+        return this._context.dump()
     }
 }

@@ -60,6 +60,9 @@ class Calculator {
     get next() {
         return this._next;
     }
+    dumpContext() {
+        return this._context.dump();
+    }
 }
 exports.Calculator = Calculator;
 //# sourceMappingURL=Calculator.js.map
