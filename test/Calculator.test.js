@@ -104,6 +104,24 @@ describe('Calculator.prototype.dumpContext', () => {
           P: [],
           E: { P: 'x', E: { P: 'y', E: { V: 'y' } } },
         },
+        {
+          N: 'cons',
+          P: ['x', 'y'],
+          E: {
+            P: 'f',
+            E: { L: { L: { V: 'f' }, R: { V: 'x' } }, R: { V: 'y' } },
+          },
+        },
+        {
+          N: 'car',
+          P: ['x'],
+          E: { L: { V: 'x' }, R: { C: 'true' } },
+        },
+        {
+          N: 'cdr',
+          P: ['x'],
+          E: { L: { V: 'x' }, R: { C: 'false' } },
+        },
       ]
     })
   })

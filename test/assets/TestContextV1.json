@@ -77,6 +77,62 @@
                     }
                 }
             }
+        },
+        {
+            "name": "cons",
+            "params": ["x", "y"],
+            "bareExpr": {
+                "type": "Lambda",
+                "param": "f",
+                "body": {
+                    "type": "Apply",
+                    "left": {
+                        "type": "Apply",
+                        "left": {
+                            "type": "Variable",
+                            "label": "f"
+                        },
+                        "right": {
+                            "type": "Variable",
+                            "label": "x"
+                        }
+                    },
+                    "right": {
+                        "type": "Variable",
+                        "label": "y"
+                    }
+                }
+            }
+        },
+        {
+            "name": "car",
+            "params": ["x"],
+            "bareExpr": {
+                "type": "Apply",
+                "left": {
+                    "type": "Variable",
+                    "label": "x"
+                },
+                "right": {
+                    "type": "Combinator",
+                    "label": "true"
+                }
+            }
+        },
+        {
+            "name": "cdr",
+            "params": ["x"],
+            "bareExpr": {
+                "type": "Apply",
+                "left": {
+                    "type": "Variable",
+                    "label": "x"
+                },
+                "right": {
+                    "type": "Combinator",
+                    "label": "false"
+                }
+            }
         }
     ]
 }
