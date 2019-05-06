@@ -2,10 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Expr_1 = require("./Types/Expr");
 const ApplicationError_1 = require("./Error/ApplicationError");
+const EmptyContextLoader_1 = require("./ContextLoader/EmptyContextLoader");
 class Calculator {
-    constructor(loader, chunkLength = 100) {
-        this.loader = loader;
-        this.chunkLength = chunkLength;
+    constructor({ loader, dumper, chunkLength }) {
+        this.loader = loader || new EmptyContextLoader_1.EmptyContextLoader();
+        this.dumper = dumper;
+        this.chunkLength = chunkLength || 100;
         this._context = this.loader.load();
         this._next = null;
     }
@@ -61,7 +63,9 @@ class Calculator {
         return this._next;
     }
     dumpContext() {
-        return this._context.dump();
+        return typeof this.dumper === 'undefined'
+            ? this._context.dump()
+            : this.dumper.dump(this._context);
     }
 }
 exports.Calculator = Calculator;

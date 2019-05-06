@@ -4,13 +4,30 @@ import { Context } from './Context'
 import { Callable } from './Types/Callable'
 import { ApplicationError } from './Error/ApplicationError'
 import { ContextArchive } from './Types/ContextArchive';
+import { ContextDumper } from './ContextDumper';
+import { ContextArchiveV2 } from './Types/ContextArchiveV2';
+import { EmptyContextLoader } from './ContextLoader/EmptyContextLoader';
+
+interface CalculatorConfig {
+    loader: ContextLoader
+    dumper: ContextDumper
+    chunkLength: number
+}
 
 
 export class Calculator {
+    readonly loader: ContextLoader
+    readonly dumper: ContextDumper
+    readonly chunkLength: number
+
     private _context: Context
     private _next: Expr
 
-    constructor(private loader: ContextLoader, public chunkLength = 100) {
+    constructor({ loader, dumper, chunkLength }: CalculatorConfig) {
+        this.loader = loader || new EmptyContextLoader()
+        this.dumper = dumper
+        this.chunkLength = chunkLength || 100
+
         this._context = this.loader.load()
         this._next = null
     }
@@ -82,7 +99,9 @@ export class Calculator {
         return this._next;
     }
 
-    public dumpContext(): ContextArchive {
-        return this._context.dump()
+    public dumpContext(): ContextArchive|ContextArchiveV2 {
+        return typeof this.dumper === 'undefined'
+            ? this._context.dump()
+            : this.dumper.dump(this._context)
     }
 }
