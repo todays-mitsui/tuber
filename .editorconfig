@@ -15,3 +15,6 @@ trim_trailing_whitespace = false
 
 [*.ts]
 indent_size = 4
+
+[*.json]
+indent_size = 4
