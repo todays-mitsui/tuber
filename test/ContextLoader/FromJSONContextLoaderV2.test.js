@@ -11,17 +11,17 @@ combinators['i'] = new Combinator('i')
 combinators['Y'] = new Combinator('Y')
 combinators['foobar'] = new Combinator('foobar')
 
-describe('FromJSONContextLoader', () => {
+describe('FromJSONContextLoaderV2', () => {
   test('ContextLoader は Context を返す', () => {
-    const json = require('../../assets/DefaultContext.json')
+    const json = require('../assets/TestContextV2.json')
     const loader = new FromJSONContextLoader(json)
     const context = loader.load()
 
     expect(context).toBeInstanceOf(Context)
   })
 
-  test('DefaultContext から s, k, i を読み出す', () => {
-    const json = require('../../assets/DefaultContext.json')
+  test('TestContextV2 から s, k, i を読み出す', () => {
+    const json = require('../assets/TestContextV2.json')
     const loader = new FromJSONContextLoader(json)
     const context = loader.load()
 

@@ -1,0 +1,82 @@
+{
+    "version": "1.0",
+    "context": [
+        {
+            "name": "s",
+            "params": ["x", "y", "z"],
+            "bareExpr": {
+                "type": "Apply",
+                "left": {
+                    "type": "Apply",
+                    "left": {
+                        "type": "Variable",
+                        "label": "x"
+                    },
+                    "right": {
+                        "type": "Variable",
+                        "label": "z"
+                    }
+                },
+                "right": {
+                    "type": "Apply",
+                    "left": {
+                        "type": "Variable",
+                        "label": "y"
+                    },
+                    "right": {
+                        "type": "Variable",
+                        "label": "z"
+                    }
+                }
+            }
+        },
+        {
+            "name": "k",
+            "params": ["x", "y"],
+            "bareExpr": {
+                "type": "Variable",
+                "label": "x"
+            }
+        },
+        {
+            "name": "i",
+            "params": ["x"],
+            "bareExpr": {
+                "type": "Variable",
+                "label": "x"
+            }
+        },
+        {
+            "name": "true",
+            "params": [],
+            "bareExpr": {
+                "type": "Lambda",
+                "param": "x",
+                "body": {
+                    "type": "Lambda",
+                    "param": "y",
+                    "body": {
+                        "type": "Variable",
+                        "label": "x"
+                    }
+                }
+            }
+        },
+        {
+            "name": "false",
+            "params": [],
+            "bareExpr": {
+                "type": "Lambda",
+                "param": "x",
+                "body": {
+                    "type": "Lambda",
+                    "param": "y",
+                    "body": {
+                        "type": "Variable",
+                        "label": "y"
+                    }
+                }
+            }
+        }
+    ]
+}

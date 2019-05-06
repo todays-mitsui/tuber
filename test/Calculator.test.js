@@ -10,7 +10,7 @@ const app = (left, right) => ( new Apply(left, right) )
 
 describe('Calculator', () => {
   test('s(k, k)(:A) -> :A', () => {
-    const json = require('../assets/DefaultContext.json')
+    const json = require('./assets/TestContextV1.json')
     const loader = new FromJSONContextLoader(json)
 
     const calculator = new Calculator({ loader })
@@ -64,7 +64,7 @@ describe('Calculator', () => {
   })
 
   test('dumpContext で現在の context を JSON シリアライズ可能な形式に変換する', () => {
-    const json = require('../assets/DefaultContext.json')
+    const json = require('./assets/TestContextV1.json')
     const loader = new FromJSONContextLoader(json)
 
     const dumper = new ContextDumperV2()

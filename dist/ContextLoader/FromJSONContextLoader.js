@@ -13,9 +13,15 @@ class FromJSONContextLoader extends ContextLoader_1.ContextLoader {
         this.src = json;
     }
     load() {
-        if (this.src.version !== '1.0') {
-            throw new ApplicationError_1.ApplicationError('不明なバージョンです');
+        if (this.src.version === '1.0') {
+            return this.readV1Src();
         }
+        if (this.src.version === '2.0') {
+            return this.readV2Src();
+        }
+        throw new ApplicationError_1.ApplicationError('不明なバージョンです');
+    }
+    readV1Src() {
         let context = new Context_1.Context();
         this.src.context.forEach(({ name, params, bareExpr }) => {
             const combinator = new Expr_1.Combinator(name);
@@ -23,6 +29,50 @@ class FromJSONContextLoader extends ContextLoader_1.ContextLoader {
             context = context.update(combinator, callable);
         });
         return context;
+    }
+    readV2Src() {
+        let context = new Context_1.Context();
+        this.src.context.forEach(({ N, P, E }) => {
+            const combinator = new Expr_1.Combinator(N);
+            const bareExpr = this.translate(E);
+            const callable = new Callable_1.Callable(P, Expr_1.Expr.fromJSON(bareExpr));
+            context = context.update(combinator, callable);
+        });
+        return context;
+    }
+    translate(expr) {
+        if ('V' in expr) {
+            return {
+                type: 'Variable',
+                label: expr.V,
+            };
+        }
+        if ('C' in expr) {
+            return {
+                type: 'Combinator',
+                label: expr.C,
+            };
+        }
+        if ('S' in expr) {
+            return {
+                type: 'Symbol',
+                label: expr.S,
+            };
+        }
+        if ('P' in expr && 'E' in expr) {
+            return {
+                type: 'Lambda',
+                param: expr.P,
+                body: this.translate(expr.E),
+            };
+        }
+        if ('L' in expr && 'R' in expr) {
+            return {
+                type: 'Apply',
+                left: this.translate(expr.L),
+                right: this.translate(expr.R),
+            };
+        }
     }
 }
 exports.FromJSONContextLoader = FromJSONContextLoader;
