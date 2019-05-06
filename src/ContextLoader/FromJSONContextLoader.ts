@@ -1,6 +1,6 @@
 import { ContextLoader } from '../ContextLoader'
 import { Context } from '../Context'
-import { Combinator, Expr, Identifier, ExprJSON } from '../Types/Expr'
+import { Combinator, Expr, ExprJSON } from '../Types/Expr'
 import { Callable } from '../Types/Callable'
 import { ApplicationError } from '../Error/ApplicationError'
 import { ContextArchive } from '../Types/ContextArchive';
@@ -21,36 +21,41 @@ export class FromJSONContextLoader extends ContextLoader {
     }
 
     public load() {
-        if (this.src.version === '1.0') { return this.readV1Src() }
+        if (!['1.0', '2.0'].includes(this.src.version)) {
+            throw new ApplicationError('不明なバージョンです')
+        }
 
-        if (this.src.version === '2.0') { return this.readV2Src() }
 
-        throw new ApplicationError('不明なバージョンです')
-    }
-
-    private readV1Src(): Context {
         let context = new Context()
 
-        this.src.context.forEach(({ name, params, bareExpr }) => {
-            const combinator = new Combinator(name)
-            const callable = new Callable(params, Expr.fromJSON(bareExpr))
+        for (let i = 0, len = this.src.context.length; i < len; i ++) {
+            const contextItem = this.src.context[i]
 
-            context = context.update(combinator, callable)
-        });
+            if (
+                'name' in contextItem
+                && 'params' in contextItem
+                && 'bareExpr' in contextItem
+            ) {
+                const { name, params, bareExpr } = contextItem
 
-        return context
-    }
+                const combinator = new Combinator(name)
+                const callable = new Callable(params, Expr.fromJSON(bareExpr))
 
-    private readV2Src(): Context {
-        let context = new Context()
+                context = context.update(combinator, callable)
+            } else if (
+                'N' in contextItem
+                && 'P' in contextItem
+                && 'E' in contextItem
+            ) {
+                const { N, P, E } = contextItem
 
-        this.src.context.forEach(({ N, P, E }) => {
-            const combinator = new Combinator(N)
-            const bareExpr = this.translate(E)
-            const callable = new Callable(P, Expr.fromJSON(bareExpr))
+                const combinator = new Combinator(N)
+                const bareExpr = this.translate(E)
+                const callable = new Callable(P, Expr.fromJSON(bareExpr))
 
-            context = context.update(combinator, callable)
-        });
+                context = context.update(combinator, callable)
+            }
+        }
 
         return context
     }
