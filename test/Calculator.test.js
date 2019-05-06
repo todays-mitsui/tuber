@@ -62,7 +62,9 @@ describe('Calculator', () => {
     expect(sequence).toHaveLength(chunkLength)
     expect(done).toBeFalsy()
   })
+})
 
+describe('Calculator.prototype.dumpContext', () => {
   test('dumpContext で現在の context を JSON シリアライズ可能な形式に変換する', () => {
     const json = require('./assets/TestContextV1.json')
     const loader = new FromJSONContextLoader(json)
@@ -104,5 +106,19 @@ describe('Calculator', () => {
         },
       ]
     })
+  })
+
+  test('dumpContext したデータを再び FromJSONContextLoader で読ませると等値になる', () => {
+    const json1 = require('./assets/TestContextV2.json')
+    const loader1 = new FromJSONContextLoader(json1)
+    const dumper1 = new ContextDumperV2()
+    const calculator1 = new Calculator({ loader: loader1, dumper: dumper1 })
+
+    const dumpedContext = calculator1.dumpContext()
+
+    const loader2 = new FromJSONContextLoader(dumpedContext)
+    const calculator2 = new Calculator({ loader: loader2 })
+
+    expect(calculator1.context).toEqual(calculator2.context)
   })
 })
