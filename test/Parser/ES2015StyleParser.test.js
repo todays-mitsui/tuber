@@ -168,18 +168,14 @@ describe('ES2015StyleExprParser', () => {
         })
     })
 
-    test('仮引数の括弧は省略可能 "x, y => (y)"', () => {
-      expect(ExprParser.lambda.tryParse('x, y => (y)').toJSON())
+    test('仮引数が1ヶだけのとき括弧は省略可能 "y => (y)"', () => {
+      expect(ExprParser.lambda.tryParse('y => (y)').toJSON())
         .toEqual({
           type: 'Lambda',
-          param: 'x',
+          param: 'y',
           body: {
-            type: 'Lambda',
-            param: 'y',
-            body: {
-              type: 'Variable',
-              label: 'y',
-            }
+            type: 'Variable',
+            label: 'y',
           }
         })
     })
@@ -275,8 +271,8 @@ describe('ES2015StyleExprParser', () => {
         })
     })
 
-    test('任意の式に任意の式を適用できる "(x, y => y)(:a)"', () => {
-      expect(ExprParser.applys.tryParse('(x, y => y)(:a)').toJSON())
+    test('任意の式に任意の式を適用できる "((x, y) => y)(:a)"', () => {
+      expect(ExprParser.applys.tryParse('((x, y) => y)(:a)').toJSON())
         .toEqual({
           type: 'Apply',
           left: {
@@ -356,8 +352,8 @@ describe('ES2015StyleExprParser', () => {
         })
     })
 
-    test('x, y, z => x (z) (y (z))', () => {
-      expect(ExprParser.expr.tryParse('x, y, z => x (z) (y (z))').toJSON())
+    test('(x, y, z) => x (z) (y (z))', () => {
+      expect(ExprParser.expr.tryParse('(x, y, z) => x (z) (y (z))').toJSON())
         .toEqual({
           type: 'Lambda',
           param: 'x',
@@ -395,6 +391,22 @@ describe('ES2015StyleExprParser', () => {
             },
           },
         })
+    })
+  })
+
+  describe('パーズに失敗する式', () => {
+    describe('x, y, z => x (z) (y (z))', () => {
+      test('無名関数の仮引数が2ヶ以上になるときは括弧を省略できない', () => {
+        expect(() => { ExprParser.expr.tryParse('x, y, z => x (z) (y (z))') })
+          .toThrowError()
+      })
+    })
+
+    describe('w=>x,y=>z', () => {
+      test('複数の式をカンマ区切りにできるのは無名関数の仮引数の中か関数適用の実引数の中だけ', () => {
+        expect(() => { ExprParser.expr.tryParse('w=>x,y=>z') })
+          .toThrowError()
+      })
     })
   })
 })

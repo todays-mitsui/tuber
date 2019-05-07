@@ -110,7 +110,7 @@ export const ExprParser = P.createLanguage({
     // 関数抽象
     lambda(r): P.Parser<Expr> {
         return P.seqMap(
-            token(optParens(r.params)),
+            token(r.params),
             token(P.string('=>')),
             token(optParens(r.expr)),
             (params: Identifier[], _, body: Expr): Expr => (
@@ -124,9 +124,9 @@ export const ExprParser = P.createLanguage({
 
     // 仮引数
     params(r): P.Parser<Identifier[]> {
-        return P.sepBy1(
-            /* content   = */ r.identifier,
-            /* separator = */ token(P.string(','))
+        return P.alt(
+            optParens(r.identifier).map(param => [param]),
+            parens(r.identifier.sepBy1(token(P.string(','))))
         )
     },
 
@@ -262,7 +262,7 @@ export const CommandParser = P.createLanguage({
         return P.seqMap(
             token(ExprParser.identifier),
             P.alt(
-                parens(ExprParser.params),
+                parens(ExprParser.identifier.sepBy1(token(P.string(',')))),
                 P.succeed([])
             ),
             (funcName, params): [Identifier, Identifier[]] => {

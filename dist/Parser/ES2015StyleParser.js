@@ -57,13 +57,11 @@ exports.ExprParser = P.createLanguage({
     },
     // 関数抽象
     lambda(r) {
-        return P.seqMap(token(optParens(r.params)), token(P.string('=>')), token(optParens(r.expr)), (params, _, body) => (params.reduceRight((body, param) => (new Expr_1.Lambda(param, body)), body)));
+        return P.seqMap(token(r.params), token(P.string('=>')), token(optParens(r.expr)), (params, _, body) => (params.reduceRight((body, param) => (new Expr_1.Lambda(param, body)), body)));
     },
     // 仮引数
     params(r) {
-        return P.sepBy1(
-        /* content   = */ r.identifier, 
-        /* separator = */ token(P.string(',')));
+        return P.alt(optParens(r.identifier).map(param => [param]), parens(r.identifier.sepBy1(token(P.string(',')))));
     },
     // 変数
     variable(r) {
@@ -122,7 +120,7 @@ exports.CommandParser = P.createLanguage({
     },
     // 関数定義の左辺値
     lvalue() {
-        return P.seqMap(token(exports.ExprParser.identifier), P.alt(parens(exports.ExprParser.params), P.succeed([])), (funcName, params) => {
+        return P.seqMap(token(exports.ExprParser.identifier), P.alt(parens(exports.ExprParser.identifier.sepBy1(token(P.string(',')))), P.succeed([])), (funcName, params) => {
             return [funcName, params];
         });
     },
