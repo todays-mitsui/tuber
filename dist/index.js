@@ -1,5 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var Expr_1 = require("./Types/Expr");
+exports.Expr = Expr_1.Expr;
+var Callable_1 = require("./Types/Callable");
+exports.Callable = Callable_1.Callable;
 var Calculator_1 = require("./Calculator");
 exports.Calculator = Calculator_1.Calculator;
 var EmptyContextLoader_1 = require("./ContextLoader/EmptyContextLoader");

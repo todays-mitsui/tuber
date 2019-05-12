@@ -1,3 +1,6 @@
+export { Expr } from './Types/Expr'
+export { Callable } from './Types/Callable'
+
 export { Calculator } from './Calculator'
 
 export { EmptyContextLoader } from './ContextLoader/EmptyContextLoader'
