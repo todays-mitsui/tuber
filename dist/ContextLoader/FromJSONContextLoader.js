@@ -32,46 +32,11 @@ class FromJSONContextLoader extends ContextLoader_1.ContextLoader {
                 && 'E' in contextItem) {
                 const { N, P, E } = contextItem;
                 const combinator = new Expr_1.Combinator(N);
-                const bareExpr = this.translate(E);
-                const callable = new Callable_1.Callable(P, Expr_1.Expr.fromJSON(bareExpr));
+                const callable = new Callable_1.Callable(P, Expr_1.Expr.restore(E));
                 context = context.update(combinator, callable);
             }
         }
         return context;
-    }
-    translate(expr) {
-        if ('V' in expr) {
-            return {
-                type: 'Variable',
-                label: expr.V,
-            };
-        }
-        if ('C' in expr) {
-            return {
-                type: 'Combinator',
-                label: expr.C,
-            };
-        }
-        if ('S' in expr) {
-            return {
-                type: 'Symbol',
-                label: expr.S,
-            };
-        }
-        if ('P' in expr && 'E' in expr) {
-            return {
-                type: 'Lambda',
-                param: expr.P,
-                body: this.translate(expr.E),
-            };
-        }
-        if ('L' in expr && 'R' in expr) {
-            return {
-                type: 'Apply',
-                left: this.translate(expr.L),
-                right: this.translate(expr.R),
-            };
-        }
     }
 }
 exports.FromJSONContextLoader = FromJSONContextLoader;

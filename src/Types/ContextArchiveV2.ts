@@ -19,28 +19,28 @@ export type ExprArchive =
     | LambdaArchive
     | ApplyArchive
 
-interface VariableArchive {
+export interface VariableArchive {
     V: Identifier,
     [key: string]: any,
 }
 
-interface CombinatorArchive {
+export interface CombinatorArchive {
     C: Identifier,
     [key: string]: any,
 }
 
-interface SymblArchive {
+export interface SymblArchive {
     S: Identifier,
     [key: string]: any,
 }
 
-interface LambdaArchive {
+export interface LambdaArchive {
     P: Identifier,
     E: ExprArchive,
     [key: string]: any,
 }
 
-interface ApplyArchive {
+export interface ApplyArchive {
     L: ExprArchive,
     R: ExprArchive,
     [key: string]: any,

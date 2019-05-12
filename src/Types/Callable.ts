@@ -1,5 +1,6 @@
 import { Identifier, Expr, Lambda, ExprJSON } from "./Expr";
 import { ToJSON } from "../Interface/ToJSON";
+import { ExprArchive } from "./ContextArchiveV2";
 
 export class Callable implements ToJSON {
     public constructor(readonly params: Identifier[], readonly bareExpr: Expr) {
@@ -35,6 +36,13 @@ export class Callable implements ToJSON {
         return {
             params: this.params,
             bareExpr: this.bareExpr.toJSON(),
+        }
+    }
+
+    public dump(): { P: Identifier[], E: ExprArchive } {
+        return {
+            P: this.params,
+            E: this.bareExpr.dump(),
         }
     }
 }

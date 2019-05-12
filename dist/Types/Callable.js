@@ -29,6 +29,12 @@ class Callable {
             bareExpr: this.bareExpr.toJSON(),
         };
     }
+    dump() {
+        return {
+            P: this.params,
+            E: this.bareExpr.dump(),
+        };
+    }
 }
 exports.Callable = Callable;
 //# sourceMappingURL=Callable.js.map

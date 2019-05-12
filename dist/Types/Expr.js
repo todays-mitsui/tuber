@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const immutable_1 = require("immutable");
 const Route_1 = require("../Route");
 const Result_1 = require("../Result");
-const immutable_1 = require("immutable");
 class Expr {
     static fromJSON(json) {
         switch (json.type) {
@@ -21,6 +21,23 @@ class Expr {
             case 'Apply': {
                 return new Apply(Expr.fromJSON(json.left), Expr.fromJSON(json.right));
             }
+        }
+    }
+    static restore(json) {
+        if ('V' in json) {
+            return new Variable(json.V);
+        }
+        if ('C' in json) {
+            return new Combinator(json.C);
+        }
+        if ('S' in json) {
+            return new Symbl(json.S);
+        }
+        if ('P' in json && 'E' in json) {
+            return new Lambda(json.P, Expr.restore(json.E));
+        }
+        if ('L' in json && 'R' in json) {
+            return new Apply(Expr.restore(json.L), Expr.restore(json.R));
         }
     }
 }
@@ -44,6 +61,9 @@ class Variable extends Expr {
             type: 'Variable',
             label: this.label,
         };
+    }
+    dump() {
+        return { V: this.label };
     }
 }
 exports.Variable = Variable;
@@ -78,6 +98,9 @@ class Combinator extends Expr {
             label: this.label,
         };
     }
+    dump() {
+        return { C: this.label };
+    }
 }
 exports.Combinator = Combinator;
 class Symbl extends Expr {
@@ -99,6 +122,9 @@ class Symbl extends Expr {
             type: 'Symbol',
             label: this.label,
         };
+    }
+    dump() {
+        return { S: this.label };
     }
 }
 exports.Symbl = Symbl;
@@ -131,6 +157,12 @@ class Lambda extends Expr {
             type: 'Lambda',
             param: this.param,
             body: this.body.toJSON(),
+        };
+    }
+    dump() {
+        return {
+            P: this.param,
+            E: this.body.dump(),
         };
     }
 }
@@ -170,6 +202,12 @@ class Apply extends Expr {
             type: 'Apply',
             left: this.left.toJSON(),
             right: this.right.toJSON(),
+        };
+    }
+    dump() {
+        return {
+            L: this.left.dump(),
+            R: this.right.dump(),
         };
     }
 }

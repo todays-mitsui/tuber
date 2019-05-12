@@ -1,9 +1,10 @@
-import { Context } from "../Context";
-import { ToJSON } from "../Interface/ToJSON";
-import { Route } from "../Route";
-import { Result, Just, Try, Fail } from "../Result";
-import { Stack } from "immutable";
-import { ApplicationError } from "../Error/ApplicationError";
+import { Stack } from 'immutable'
+import { ToJSON } from '../Interface/ToJSON'
+import { Dump } from '../Interface/Dump'
+import { Context } from '../Context'
+import { Route } from '../Route'
+import { Result, Just, Try, Fail } from '../Result'
+import { ExprArchive, VariableArchive, CombinatorArchive, SymblArchive, LambdaArchive, ApplyArchive } from './ContextArchiveV2'
 
 
 export type ExprType = 'Variable' | 'Combinator' | 'Symbol' | 'Lambda' | 'Apply'
@@ -44,7 +45,7 @@ export interface ApplyJSON {
 }
 
 
-export abstract class Expr implements ToJSON {
+export abstract class Expr implements ToJSON, Dump {
     abstract reduce(context: Context): Expr
     abstract tryReduce(context: Context, route: Route): Result
     // abstract invoke(context: Context, args: Expr[]): Expr
@@ -74,7 +75,31 @@ export abstract class Expr implements ToJSON {
         }
     }
 
+    static restore(json: ExprArchive): Expr {
+        if ('V' in json) {
+            return new Variable(json.V)
+        }
+
+        if ('C' in json) {
+            return new Combinator(json.C)
+        }
+
+        if ('S' in json) {
+            return new Symbl(json.S)
+        }
+
+        if ('P' in json && 'E' in json) {
+            return new Lambda(json.P, Expr.restore(json.E))
+        }
+
+        if ('L' in json && 'R' in json) {
+            return new Apply(Expr.restore(json.L), Expr.restore(json.R))
+        }
+    }
+
     abstract toJSON(): ExprJSON
+
+    abstract dump(): ExprArchive
 }
 
 export type Identifier = string
@@ -102,6 +127,10 @@ export class Variable extends Expr {
             type: 'Variable',
             label: this.label,
         }
+    }
+
+    public dump(): VariableArchive {
+        return { V: this.label }
     }
 }
 
@@ -140,6 +169,10 @@ export class Combinator extends Expr {
             label: this.label,
         }
     }
+
+    public dump(): CombinatorArchive {
+        return { C: this.label }
+    }
 }
 
 
@@ -165,6 +198,10 @@ export class Symbl extends Expr {
             type: 'Symbol',
             label: this.label,
         }
+    }
+
+    public dump(): SymblArchive {
+        return { S: this.label }
     }
 }
 
@@ -199,6 +236,13 @@ export class Lambda extends Expr {
             type: 'Lambda',
             param: this.param,
             body: this.body.toJSON(),
+        }
+    }
+
+    public dump(): LambdaArchive {
+        return {
+            P: this.param,
+            E: this.body.dump(),
         }
     }
 }
@@ -250,6 +294,13 @@ export class Apply extends Expr {
             type: 'Apply',
             left: this.left.toJSON(),
             right: this.right.toJSON(),
+        }
+    }
+
+    public dump(): ApplyArchive {
+        return {
+            L: this.left.dump(),
+            R: this.right.dump(),
         }
     }
 }
