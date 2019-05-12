@@ -1,8 +1,9 @@
 import { Identifier, Expr, Lambda, ExprJSON } from "./Expr";
 import { ToJSON } from "../Interface/ToJSON";
+import { Dump } from "../Interface/Dump";
 import { ExprArchive } from "./ContextArchiveV2";
 
-export class Callable implements ToJSON {
+export class Callable implements ToJSON, Dump {
     public constructor(readonly params: Identifier[], readonly bareExpr: Expr) {
     }
 
@@ -32,11 +33,19 @@ export class Callable implements ToJSON {
         return body;
     }
 
+    public static fromJSON(json: { params: Identifier[], bareExpr: ExprJSON }) {
+        return new Callable(json.params, Expr.fromJSON(json.bareExpr))
+    }
+
     public toJSON(): { params: Identifier[], bareExpr: ExprJSON } {
         return {
             params: this.params,
             bareExpr: this.bareExpr.toJSON(),
         }
+    }
+
+    public static restore(json: { P: Identifier[], E: ExprArchive }) {
+        return new Callable(json.P, Expr.restore(json.E))
     }
 
     public dump(): { P: Identifier[], E: ExprArchive } {

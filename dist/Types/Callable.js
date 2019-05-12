@@ -23,11 +23,17 @@ class Callable {
         }
         return body;
     }
+    static fromJSON(json) {
+        return new Callable(json.params, Expr_1.Expr.fromJSON(json.bareExpr));
+    }
     toJSON() {
         return {
             params: this.params,
             bareExpr: this.bareExpr.toJSON(),
         };
+    }
+    static restore(json) {
+        return new Callable(json.P, Expr_1.Expr.restore(json.E));
     }
     dump() {
         return {
